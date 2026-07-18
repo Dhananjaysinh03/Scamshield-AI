@@ -211,7 +211,7 @@ export function SimpleCheck() {
     <div className={dark ? "theme-soc" : "theme-consumer"}>
       <div className="simple-shell min-h-screen">
         <header className="simple-header sticky top-0 z-20">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
+          <div className="flex w-full items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8 xl:px-10">
             <div className="flex min-w-0 items-center gap-2.5">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-sm font-bold text-white shadow-sm">
                 S
@@ -230,11 +230,11 @@ export function SimpleCheck() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8">
-          <h1 className="max-w-2xl text-[1.85rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-5xl">
+        <main className="w-full px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8 xl:px-10">
+          <h1 className="max-w-3xl text-[1.85rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-5xl">
             Got a suspicious message?
           </h1>
-          <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-[var(--ink-muted)] sm:text-lg">
+          <p className="mt-3 max-w-2xl text-[0.95rem] leading-relaxed text-[var(--ink-muted)] sm:text-lg">
             Paste it here. We&apos;ll tell you if it looks like a scam — in
             simple words.
           </p>
