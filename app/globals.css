@@ -237,6 +237,69 @@ button:not(:disabled):active,
   color: var(--ink);
 }
 
+/* Fit-to-screen shell: header + main fill the viewport */
+.ss-fit {
+  display: flex;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  flex-direction: column;
+}
+
+.ss-fit-main {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ss-workspace {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.ss-pane {
+  min-height: 0;
+  overflow-x: clip;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ss-textarea {
+  min-height: 7.5rem;
+}
+
+@media (min-width: 1024px) {
+  .ss-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .ss-textarea {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .ss-fit {
+    max-height: none;
+  }
+
+  .ss-fit-main {
+    overflow: visible;
+  }
+
+  .ss-workspace {
+    overflow: visible;
+  }
+}
+
 .simple-header {
   border-bottom: 1px solid var(--line);
   background: var(--header-glass);
@@ -268,24 +331,32 @@ button:not(:disabled):active,
 }
 
 .ss-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem;
-  padding: 0.3rem;
-  border-radius: 1rem;
-  background: var(--input);
+  display: inline-flex;
+  gap: 0.2rem;
+  border-radius: 999px;
   border: 1px solid var(--line);
+  background: var(--input);
+  padding: 0.2rem;
 }
 
 .ss-tab {
-  min-height: 2.75rem;
-  border-radius: 0.8rem;
-  font-size: 0.95rem;
+  min-height: 2.25rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
   font-weight: 650;
   color: var(--ink-muted);
   transition:
     background 0.15s ease,
     color 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .ss-tab {
+    min-height: 2.4rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8125rem;
+  }
 }
 
 .ss-tab[aria-selected="true"] {
@@ -302,7 +373,7 @@ button:not(:disabled):active,
     color-mix(in srgb, var(--brand-soft) 85%, white),
     var(--card) 55%
   );
-  padding: 1.1rem 1.15rem;
+  padding: 0.85rem 1rem;
 }
 
 .how-step {
