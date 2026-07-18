@@ -40,3 +40,54 @@ body {
 .font-display {
   font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
 }
+
+/* Motion / polish tokens */
+@keyframes timeline-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stage-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px 2px rgba(52, 211, 153, 0.28);
+  }
+}
+
+@keyframes detail-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.timeline-stage-in {
+  animation: timeline-fade-up 0.45s ease-out both;
+}
+
+.stage-glow {
+  animation: stage-glow-pulse 2.4s ease-in-out infinite;
+}
+
+.stage-detail-in {
+  animation: detail-fade 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-stage-in,
+  .stage-glow,
+  .stage-detail-in {
+    animation: none;
+  }
+}

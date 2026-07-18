@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { AttackTimeline } from "@/components/AttackTimeline";
 import { DismantleTeaser } from "@/components/DismantleTeaser";
 import { EvidenceList } from "@/components/EvidenceList";
 import { IntakePanel } from "@/components/IntakePanel";
 import { ScanResults } from "@/components/ScanResults";
 import { ThreatConsole } from "@/components/ThreatConsole";
+import { getMockTimeline } from "@/lib/mocks/timeline";
 import type { EvidenceItem, ExaResponse, ScanResult } from "@/lib/types";
 
 export function Dashboard() {
@@ -13,6 +15,9 @@ export function Dashboard() {
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [lines, setLines] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
+
+  /* FE-T1: mock timeline always available for UI polish */
+  const mockTimeline = useMemo(() => getMockTimeline(evidence), [evidence]);
 
   function addEvidence(items: EvidenceItem[]) {
     setEvidence((prev) => [...prev, ...items]);
@@ -87,6 +92,7 @@ export function Dashboard() {
           scanning={scanning}
         />
         <EvidenceList items={evidence} />
+        <AttackTimeline result={mockTimeline} evidence={evidence} />
       </section>
 
       <section className="flex flex-col gap-4">
