@@ -24,7 +24,7 @@ export function SystemsBadge() {
       {SYSTEMS.map((s) => (
         <div
           key={s.id}
-          className="min-w-[8.75rem] max-w-[11rem] shrink-0 rounded-lg border border-border bg-panel/70 px-3 py-2.5"
+          className="min-w-[8.75rem] max-w-[11rem] shrink-0 rounded-lg border border-border bg-panel px-3 py-2.5 shadow-sm dark:bg-panel/70 dark:shadow-none"
         >
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
             System {s.id}

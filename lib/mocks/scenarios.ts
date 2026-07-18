@@ -12,8 +12,8 @@ export type DemoScenario = {
 export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "upi_kyc",
-    label: "UPI / KYC",
-    blurb: "KYC freeze → officer → payment",
+    label: "Fake bank / KYC",
+    blurb: "“Your account will freeze — click now”",
     drops: [
       {
         type: "text",
@@ -34,8 +34,8 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   },
   {
     id: "job_offer",
-    label: "Job scam",
-    blurb: "HR chat → portal → fee",
+    label: "Fake job offer",
+    blurb: "“You’re hired — pay a small fee first”",
     drops: [
       {
         type: "text",
@@ -56,8 +56,8 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   },
   {
     id: "customs",
-    label: "Customs",
-    blurb: "Parcel hold → threat → fee",
+    label: "Fake customs",
+    blurb: "“Your parcel is held — pay to release”",
     drops: [
       {
         type: "text",

@@ -19,10 +19,21 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield AI",
+  title: "ScamShield — Check suspicious messages",
   description:
-    "Offensive cyber-defense: live threat intel, stitched scam timelines, reverse-poison honeypots.",
+    "Paste an SMS, WhatsApp, or email. ScamShield explains if it looks like a scam and how they tried to trick you.",
 };
+
+const themeBootScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('scamshield-theme');
+    var dark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (dark) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  } catch (e) {}
+})();
+`;
 
 export default function RootLayout({
   children,
@@ -32,9 +43,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${syne.variable} ${dmSans.variable} ${jetbrains.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
+      <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>
   );
 }

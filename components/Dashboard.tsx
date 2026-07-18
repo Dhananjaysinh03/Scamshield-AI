@@ -7,9 +7,9 @@ import { DismantlePanel } from "@/components/DismantlePanel";
 import { EvidenceList } from "@/components/EvidenceList";
 import { IntakePanel } from "@/components/IntakePanel";
 import { ScanResults } from "@/components/ScanResults";
-import { SystemsBadge } from "@/components/SystemsBadge";
 import { ThreatConsole } from "@/components/ThreatConsole";
 import { ThreatReport } from "@/components/ThreatReport";
+import { UserStep } from "@/components/UserStep";
 import { USE_MOCKS } from "@/lib/mocks/config";
 import {
   DEMO_SCENARIOS,
@@ -37,8 +37,10 @@ export function Dashboard() {
   const [injected, setInjected] = useState(0);
   const [activeScenario, setActiveScenario] =
     useState<DemoScenarioId>("upi_kyc");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const evidenceRef = useRef(evidence);
   evidenceRef.current = evidence;
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   function addEvidence(items: EvidenceItem[]) {
     setEvidence((prev) => [...prev, ...items]);
@@ -54,36 +56,24 @@ export function Dashboard() {
     setInjected(0);
     setLines((prev) => [
       ...prev,
-      `[Demo]: Loaded scenario "${id}" — ${drops.length} drops.`,
+      `[Demo]: Loaded example "${id}" — ${drops.length} messages.`,
     ]);
   }
 
   const buildTimeline = useCallback(async (ev?: EvidenceItem[]) => {
     const payload = ev ?? evidenceRef.current;
     if (!payload.length) {
-      setLines((prev) => [
-        ...prev,
-        "[Timeline]: No evidence — add drops before stitching stages.",
-      ]);
-      setTimelineError("No evidence in session.");
+      setTimelineError("Add a message first.");
       return null;
     }
 
     setTimelineLoading(true);
     setTimelineError(null);
-    setLines((prev) => [
-      ...prev,
-      "[Timeline]: Building psychological attack stages…",
-    ]);
 
     try {
       if (USE_MOCKS) {
         const mock = getMockTimeline(payload);
         setTimeline(mock);
-        setLines((prev) => [
-          ...prev,
-          `[Timeline]: Mock mode — ${mock.stages.length} stages ready.`,
-        ]);
         return mock;
       }
 
@@ -121,109 +111,109 @@ export function Dashboard() {
     }
   }, []);
 
-  const runScan = useCallback(async (ev?: EvidenceItem[]) => {
-    const payload = ev ?? evidenceRef.current;
-    if (!payload.length) {
-      setLines((prev) => [
-        ...prev,
-        "[Scan]: No evidence in session — add a drop first.",
-      ]);
-      return null;
-    }
-
-    setScanning(true);
-    setTimelineLoading(true);
-    setTimelineError(null);
-    setLines((prev) => [
-      ...prev,
-      "[Scan]: Fast pipeline — scan + Exa + timeline…",
-    ]);
-
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ evidence: payload }),
-      });
-
-      if (!res.ok) throw new Error(`analyze ${res.status}`);
-
-      const data = (await res.json()) as {
-        scan: ScanResult;
-        timeline: TimelineResult;
-        intel: ExaResponse[];
-        ms: number;
-      };
-
-      setScan(data.scan);
-      setTimeline(data.timeline);
-      setLines((prev) => {
-        const next = [
+  const runScan = useCallback(
+    async (ev?: EvidenceItem[]) => {
+      const payload = ev ?? evidenceRef.current;
+      if (!payload.length) {
+        setLines((prev) => [
           ...prev,
-          `[Scan]: risk=${data.scan.riskLevel} score=${data.scan.score} urls=${data.scan.urls.length} (${data.ms}ms)`,
-          `[Scan]: ${data.scan.summary}`,
-          `[Timeline]: ${data.timeline.stages.length} stages — ${data.timeline.narrative}`,
-        ];
-        for (const block of data.intel) {
-          next.push(...block.lines);
-        }
-        if (!data.intel.length) {
-          next.push(
-            "[Exa Threat Intel]: No URLs extracted — skipping live intel.",
-          );
-        }
-        return next;
-      });
-      return data.scan;
-    } catch {
-      setLines((prev) => [
-        ...prev,
-        "[Scan]: Fast pipeline failed — falling back…",
-      ]);
+          "[Scan]: No message yet — paste one first.",
+        ]);
+        return null;
+      }
+
+      evidenceRef.current = payload;
+      setEvidence(payload);
+      setScanning(true);
+      setTimelineLoading(true);
+      setTimelineError(null);
+      setLines((prev) => [...prev, "[Scan]: Checking message…"]);
+
       try {
-        const res = await fetch("/api/scan", {
+        const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ evidence: payload }),
         });
-        const scanData = (await res.json()) as ScanResult;
-        setScan(scanData);
+
+        if (!res.ok) throw new Error(`analyze ${res.status}`);
+
+        const data = (await res.json()) as {
+          scan: ScanResult;
+          timeline: TimelineResult;
+          intel: ExaResponse[];
+          ms: number;
+        };
+
+        setScan(data.scan);
+        setTimeline(data.timeline);
+        setLines((prev) => {
+          const next = [
+            ...prev,
+            `[Scan]: risk=${data.scan.riskLevel} score=${data.scan.score} (${data.ms}ms)`,
+            `[Scan]: ${data.scan.summary}`,
+            `[Timeline]: ${data.timeline.stages.length} stages`,
+          ];
+          for (const block of data.intel) next.push(...block.lines);
+          return next;
+        });
+        requestAnimationFrame(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return data.scan;
+      } catch {
         setLines((prev) => [
           ...prev,
-          `[Scan]: risk=${scanData.riskLevel} score=${scanData.score}`,
-          `[Scan]: ${scanData.summary}`,
+          "[Scan]: Fast check failed — trying again…",
         ]);
-        for (const url of scanData.urls) {
-          try {
-            const er = await fetch("/api/exa", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ url }),
-            });
-            const intel = (await er.json()) as ExaResponse;
-            setLines((prev) => [...prev, ...intel.lines]);
-          } catch {
-            /* continue */
+        try {
+          const res = await fetch("/api/scan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ evidence: payload }),
+          });
+          const scanData = (await res.json()) as ScanResult;
+          setScan(scanData);
+          setLines((prev) => [
+            ...prev,
+            `[Scan]: risk=${scanData.riskLevel} score=${scanData.score}`,
+            `[Scan]: ${scanData.summary}`,
+          ]);
+          for (const url of scanData.urls) {
+            try {
+              const er = await fetch("/api/exa", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url }),
+              });
+              const intel = (await er.json()) as ExaResponse;
+              setLines((prev) => [...prev, ...intel.lines]);
+            } catch {
+              /* continue */
+            }
           }
+          await buildTimeline(payload);
+          requestAnimationFrame(() => {
+            resultsRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          });
+          return scanData;
+        } catch {
+          setLines((prev) => [...prev, "[Scan]: Request failed."]);
+          return null;
         }
-        await buildTimeline(payload);
-        return scanData;
-      } catch {
-        setLines((prev) => [...prev, "[Scan]: Request failed."]);
-        return null;
+      } finally {
+        setScanning(false);
+        setTimelineLoading(false);
       }
-    } finally {
-      setScanning(false);
-      setTimelineLoading(false);
-    }
-  }, [buildTimeline]);
+    },
+    [buildTimeline],
+  );
 
-  async function runPitchMode() {
+  async function runDemo() {
     setPitching(true);
-    setLines((prev) => [
-      ...prev,
-      "[Pitch]: Auto demo armed — Systems A → B → C in sequence.",
-    ]);
     const drops = scenarioToEvidence(activeScenario);
     setEvidence(drops);
     setScan(null);
@@ -238,109 +228,141 @@ export function Dashboard() {
       (result.riskLevel === "high" || result.riskLevel === "critical") &&
       result.urls.length
     ) {
-      setLines((prev) => [
-        ...prev,
-        "[Pitch]: Arming System A — reverse-poison honeypot…",
-      ]);
       setAutoStartToken((t) => t + 1);
+      setShowAdvanced(true);
     }
     setPitching(false);
+  }
+
+  function handleCheck(extra?: EvidenceItem[]) {
+    const payload = extra?.length
+      ? [...evidenceRef.current, ...extra]
+      : undefined;
+    void runScan(payload);
   }
 
   const pushLine = (line: string) => setLines((prev) => [...prev, line]);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
-      <SystemsBadge />
+    <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-6 lg:max-w-none">
+      <div className="rounded-2xl border border-border bg-panel-soft/80 px-4 py-4 sm:px-5">
+        <p className="text-sm font-semibold text-foreground">
+          Not sure what to paste? Try an example
+        </p>
+        <p className="mt-1 text-sm text-muted">
+          Pick one, then tap “Check this example” — we’ll walk you through it.
+        </p>
+        <div className="chip-rail mt-3">
+          {DEMO_SCENARIOS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => loadScenario(s.id)}
+              disabled={scanning || pitching}
+              className={`min-h-12 w-[12rem] shrink-0 rounded-xl border px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-[14rem] ${
+                activeScenario === s.id
+                  ? "border-accent bg-accent-soft text-accent"
+                  : "border-border bg-panel text-foreground hover:border-accent/40"
+              }`}
+            >
+              <span className="block text-sm font-semibold leading-tight">
+                {s.label}
+              </span>
+              <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-muted">
+                {s.blurb}
+              </span>
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => void runDemo()}
+          disabled={scanning || pitching}
+          className="mt-3 min-h-12 w-full rounded-xl border border-accent/40 bg-accent-soft px-4 text-base font-semibold text-accent transition hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
+        >
+          {pitching ? "Running example…" : "Check this example"}
+        </button>
+      </div>
 
-      <section data-testid="intake-region" className="flex min-w-0 flex-col gap-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Demo scenarios
-          </p>
-          <div className="chip-rail">
-            {DEMO_SCENARIOS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => loadScenario(s.id)}
-                disabled={scanning || pitching}
-                className={`min-h-11 w-[11.5rem] shrink-0 rounded-lg border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-[13rem] ${
-                  activeScenario === s.id
-                    ? "border-accent bg-accent/15 text-accent"
-                    : "border-border bg-panel text-foreground hover:border-accent/40"
-                }`}
-              >
-                <span className="block font-semibold leading-tight">{s.label}</span>
-                <span className="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-muted">
-                  {s.blurb}
-                </span>
-              </button>
-            ))}
+      <div className="grid min-w-0 w-full grid-cols-1 gap-6 xl:grid-cols-12 xl:gap-8">
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-7">
+          <UserStep
+            step={1}
+            title="Paste the suspicious message"
+            hint="SMS, WhatsApp, email — copy and paste the text you received."
+          >
+            <div data-testid="intake-region" className="flex flex-col gap-4">
+              <IntakePanel
+                onAdd={addEvidence}
+                onScan={handleCheck}
+                scanning={scanning || pitching}
+                hasEvidence={evidence.length > 0}
+              />
+              <EvidenceList items={evidence} />
+            </div>
+          </UserStep>
+
+          <div ref={resultsRef}>
+            <UserStep
+              step={2}
+              title="See the result"
+              hint="We’ll say how risky it looks and why — in plain language."
+            >
+              {scan ? (
+                <div className="flex flex-col gap-5">
+                  <ScanResults result={scan} />
+                  <AudioAlertButton
+                    summary={scan.summary}
+                    onConsoleLine={pushLine}
+                  />
+                  <AttackTimeline
+                    result={timeline}
+                    evidence={evidence}
+                    loading={timelineLoading}
+                    error={timelineError}
+                  />
+                </div>
+              ) : (
+                <p className="text-base leading-relaxed text-muted">
+                  Your result will appear here after you check a message.
+                </p>
+              )}
+            </UserStep>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <button
-            type="button"
-            onClick={() => void runPitchMode()}
-            disabled={scanning || pitching}
-            className="min-h-11 w-full rounded-lg bg-accent px-4 text-sm font-bold text-zinc-950 transition hover:bg-accent-dim hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
+        <div className="flex min-w-0 flex-col gap-6 xl:col-span-5 xl:sticky xl:top-20 xl:self-start">
+          <UserStep
+            step={3}
+            title="What you can do next"
+            hint="Save a report, or use extra protection if there’s a fake website."
           >
-            {pitching ? "Pitch running…" : "▶ Pitch mode"}
-          </button>
-          <button
-            type="button"
-            onClick={() => loadScenario(activeScenario)}
-            disabled={scanning || pitching}
-            className="min-h-11 w-full rounded-lg border border-dashed border-accent/50 px-4 text-sm font-semibold text-accent transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
-          >
-            Load scenario
-          </button>
-          <button
-            type="button"
-            onClick={() => void buildTimeline()}
-            disabled={timelineLoading || scanning || pitching}
-            className="min-h-11 w-full rounded-lg border border-border bg-panel px-4 text-sm font-medium text-foreground transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
-          >
-            {timelineLoading ? "Building…" : "Build timeline"}
-          </button>
+            <div className="flex flex-col gap-4">
+              <ThreatReport
+                scan={scan}
+                timeline={timeline}
+                consoleLines={lines}
+                injected={injected}
+              />
+              <DismantlePanel
+                scan={scan}
+                onConsoleLine={pushLine}
+                autoStartToken={autoStartToken}
+                onInjectedChange={setInjected}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="min-h-11 self-start text-sm font-medium text-muted underline-offset-2 hover:text-foreground hover:underline"
+              >
+                {showAdvanced ? "Hide technical details" : "Show technical details"}
+              </button>
+              {showAdvanced ? <ThreatConsole lines={lines} /> : null}
+            </div>
+          </UserStep>
         </div>
-
-        <IntakePanel
-          onAdd={addEvidence}
-          onScan={() => void runScan()}
-          scanning={scanning || pitching}
-        />
-        <EvidenceList items={evidence} />
-
-        <AttackTimeline
-          result={timeline}
-          evidence={evidence}
-          loading={timelineLoading}
-          error={timelineError}
-        />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <ScanResults result={scan} />
-        {scan ? (
-          <AudioAlertButton summary={scan.summary} onConsoleLine={pushLine} />
-        ) : null}
-        <DismantlePanel
-          scan={scan}
-          onConsoleLine={pushLine}
-          autoStartToken={autoStartToken}
-          onInjectedChange={setInjected}
-        />
-        <ThreatReport
-          scan={scan}
-          timeline={timeline}
-          consoleLines={lines}
-          injected={injected}
-        />
-        <ThreatConsole lines={lines} />
-      </section>
+      </div>
     </div>
   );
 }

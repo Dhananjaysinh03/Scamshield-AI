@@ -16,9 +16,9 @@ export function AudioAlertButton({ summary, onConsoleLine }: Props) {
 
   async function playAlert() {
     if (!summary?.trim()) {
-      const msg = "[Audio]: No scan summary — run a scan first.";
+      const msg = "Check a message first to hear the warning.";
       setToast(msg);
-      onConsoleLine?.(msg);
+      onConsoleLine?.(`[Audio]: ${msg}`);
       return;
     }
 
@@ -27,10 +27,9 @@ export function AudioAlertButton({ summary, onConsoleLine }: Props) {
 
     try {
       if (USE_AUDIO_MOCKS) {
-        const msg =
-          "[Audio]: Stub mode — voice readout queued (backend TTS offline).";
+        const msg = "Voice warning isn’t available right now — read the result above.";
         setToast(msg);
-        onConsoleLine?.(msg);
+        onConsoleLine?.(`[Audio]: stub`);
         return;
       }
 
@@ -40,33 +39,25 @@ export function AudioAlertButton({ summary, onConsoleLine }: Props) {
         body: JSON.stringify({ text: summary }),
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = (await res.json()) as AudioReadoutResponse;
 
       if (data.mode === "stub") {
-        setToast(`[Audio]: ${data.message}`);
+        setToast(data.message || "Voice warning isn’t available right now.");
         onConsoleLine?.(`[Audio]: ${data.message}`);
         return;
       }
 
       const src = `data:${data.mime};base64,${data.audioBase64}`;
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
       const audio = new Audio(src);
       audioRef.current = audio;
       await audio.play();
       onConsoleLine?.("[Audio]: Live readout playing.");
-    } catch (err) {
-      const msg =
-        err instanceof Error
-          ? `[Audio]: ${err.message} — stub fallback.`
-          : "[Audio]: Request failed — stub fallback.";
-      setToast(msg);
-      onConsoleLine?.(msg);
+    } catch {
+      setToast("Couldn’t play audio. Please read the written result instead.");
+      onConsoleLine?.("[Audio]: failed");
     } finally {
       setBusy(false);
     }
@@ -78,12 +69,12 @@ export function AudioAlertButton({ summary, onConsoleLine }: Props) {
         type="button"
         onClick={() => void playAlert()}
         disabled={busy}
-        className="min-h-11 w-full rounded-lg border border-accent/40 bg-accent/10 px-4 text-sm font-semibold text-accent transition hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] disabled:opacity-40 sm:w-auto sm:self-start"
+        className="min-h-12 w-full rounded-xl border border-border bg-panel px-4 text-base font-semibold text-foreground transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto sm:self-start"
       >
-        {busy ? "Playing…" : "Audio alert"}
+        {busy ? "Playing…" : "Hear the warning"}
       </button>
       {toast ? (
-        <p className="font-mono text-xs text-muted" role="status">
+        <p className="text-sm text-muted" role="status">
           {toast}
         </p>
       ) : null}

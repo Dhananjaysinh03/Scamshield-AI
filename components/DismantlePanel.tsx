@@ -226,39 +226,41 @@ export function DismantlePanel({
 
   if (!enabled) {
     return (
-      <div className="rounded-lg border border-border bg-panel/40 p-4">
-        <button
-          type="button"
-          disabled
-          className="min-h-11 w-full cursor-not-allowed rounded-lg border border-border bg-panel px-4 text-sm font-semibold text-muted opacity-60"
-        >
-          Dismantle Attack
-        </button>
-        <p className="mt-2 text-center text-xs text-muted">
-          Locked until risk is high/critical and a phishing URL is present.
+      <div className="rounded-2xl border border-border bg-panel-soft p-5">
+        <p className="font-display text-base font-bold text-foreground">
+          Extra protection
+        </p>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted">
+          If a message looks like a serious scam and includes a fake website,
+          you can confuse the scammer so they waste time on fake details — not
+          yours.
+        </p>
+        <p className="mt-3 text-sm text-muted">
+          Available when risk is high and a suspicious link is found.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="min-w-0 rounded-lg border border-danger/40 bg-danger/5 p-4">
-      <p className="font-display text-sm font-bold uppercase tracking-widest text-danger">
-        System A · Dismantle Attack
+    <div className="min-w-0 rounded-2xl border border-danger/35 bg-danger-soft p-5">
+      <p className="font-display text-lg font-bold tracking-tight text-danger">
+        Confuse the scammer
       </p>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
-        Reverse-poison the scammer sink with synthetic credentials.
+      <p className="mt-1.5 text-sm leading-relaxed text-muted sm:text-base">
+        We can send them many fake names and passwords so their fake website
+        fills with junk. This does not send your real information.
       </p>
 
       <label className="mt-4 block min-w-0">
-        <span className="mb-1.5 block text-xs font-medium text-foreground">
-          Target URL
+        <span className="mb-1.5 block text-sm font-medium text-foreground">
+          Fake website to target
         </span>
         <select
           value={targetUrl}
           onChange={(e) => setTargetUrl(e.target.value)}
           disabled={running}
-          className="min-h-11 w-full max-w-full rounded-lg border border-border bg-console px-3 text-xs text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-50 sm:text-sm"
+          className="min-h-12 w-full max-w-full rounded-xl border border-border bg-panel px-3 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-50"
         >
           {urls.map((u) => (
             <option key={u} value={u}>
@@ -268,32 +270,30 @@ export function DismantlePanel({
         </select>
       </label>
 
-      <div className="mt-4 flex flex-col items-center py-2">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-          Injected
-        </p>
+      <div className="mt-5 flex flex-col items-center rounded-2xl bg-panel/80 py-4">
+        <p className="text-sm font-medium text-muted">Fake details sent</p>
         <p
-          className={`font-display text-4xl font-extrabold tabular-nums text-accent sm:text-6xl ${running ? "counter-pulse" : ""}`}
+          className={`font-display text-4xl font-extrabold tabular-nums text-accent sm:text-5xl ${running ? "counter-pulse" : ""}`}
           aria-live="polite"
         >
           {injected.toLocaleString()}
         </p>
       </div>
 
-      <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
           onClick={() => void start()}
           disabled={running || !targetUrl}
-          className="min-h-11 flex-1 rounded-lg bg-danger px-4 text-sm font-semibold text-zinc-950 transition hover:bg-danger/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] disabled:opacity-40"
+          className="min-h-12 flex-1 rounded-xl bg-danger px-4 text-base font-semibold text-white transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger disabled:opacity-40"
         >
-          {running ? "Corrupting database…" : "Dismantle Attack"}
+          {running ? "Working…" : "Start protection"}
         </button>
         <button
           type="button"
           onClick={stop}
           disabled={!running}
-          className="min-h-11 flex-1 rounded-lg border border-border bg-panel px-4 text-sm font-medium text-foreground transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.99] disabled:opacity-40"
+          className="min-h-12 flex-1 rounded-xl border border-border bg-panel px-4 text-base font-medium text-foreground transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
         >
           Stop
         </button>

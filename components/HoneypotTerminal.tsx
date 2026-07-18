@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   lines: string[];
@@ -9,36 +9,48 @@ type Props = {
 
 export function HoneypotTerminal({
   lines,
-  label = "Honeypot sink · live",
+  label = "Protection progress",
 }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [lines]);
+    if (lines.length > 0) setOpen(true);
+  }, [lines.length]);
+
+  useEffect(() => {
+    if (open) endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [lines, open]);
+
+  if (!lines.length) return null;
 
   return (
-    <div
-      className="flex h-48 flex-col overflow-hidden rounded-lg border border-border bg-console sm:h-56"
-      role="log"
-      aria-live="polite"
-      aria-label="Honeypot injection terminal"
-    >
-      <div className="border-b border-border px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-danger">
-        {label}
-      </div>
-      <div className="flex-1 space-y-1.5 overflow-y-auto p-3 font-mono text-xs leading-relaxed text-emerald-100/90">
-        {lines.length === 0 ? (
-          <p className="text-muted">Awaiting dismantle…</p>
-        ) : (
-          lines.map((line, i) => (
-            <p key={`${i}-${line.slice(0, 28)}`} className="break-words">
-              {line}
-            </p>
-          ))
-        )}
-        <div ref={endRef} />
-      </div>
+    <div className="overflow-hidden rounded-xl border border-border bg-console">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-h-11 w-full items-center justify-between border-b border-white/10 px-3 py-2 text-left text-xs font-semibold text-danger"
+      >
+        <span>{label}</span>
+        <span className="font-normal text-zinc-400">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open ? (
+        <div
+          className="flex h-40 flex-col sm:h-48"
+          role="log"
+          aria-live="polite"
+          aria-label="Protection progress"
+        >
+          <div className="flex-1 space-y-1.5 overflow-y-auto p-3 font-mono text-xs leading-relaxed text-console-fg">
+            {lines.map((line, i) => (
+              <p key={`${i}-${line.slice(0, 28)}`} className="break-words">
+                {line}
+              </p>
+            ))}
+            <div ref={endRef} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

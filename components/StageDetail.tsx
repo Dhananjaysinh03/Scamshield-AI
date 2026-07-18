@@ -10,9 +10,9 @@ type Props = {
 export function StageDetail({ stage, evidence }: Props) {
   if (!stage) {
     return (
-      <div className="rounded-lg border border-border bg-panel/40 px-4 py-5">
+      <div className="rounded-xl border border-border bg-panel-soft px-4 py-5">
         <p className="text-sm text-muted">
-          Select a stage to inspect rationale and linked evidence.
+          Tap a step above to see what happened.
         </p>
       </div>
     );
@@ -22,34 +22,21 @@ export function StageDetail({ stage, evidence }: Props) {
 
   return (
     <div
-      className="rounded-lg border border-accent/30 bg-panel/60 px-4 py-4 stage-detail-in"
+      className="stage-detail-in rounded-xl border border-accent/25 bg-accent-soft/50 px-4 py-4"
       key={stage.id}
     >
-      <div className="flex flex-wrap items-baseline gap-2">
-        <h3 className="font-display text-lg font-bold text-accent">
-          {stage.label}
-        </h3>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
-          confidence {Math.round(stage.confidence * 100)}%
-        </span>
-      </div>
-      <p className="mt-2 text-sm leading-relaxed text-foreground/90">
+      <h4 className="font-display text-lg font-bold text-accent">{stage.label}</h4>
+      <p className="mt-2 text-base leading-relaxed text-foreground/90">
         {stage.rationale}
       </p>
-      <div className="mt-4">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-          Linked evidence
-        </p>
-        {linked.length === 0 ? (
-          <p className="mt-2 text-xs text-muted">
-            No matching drops in session (mock IDs may be placeholders).
-          </p>
-        ) : (
+      {linked.length > 0 ? (
+        <div className="mt-4">
+          <p className="text-sm font-semibold text-foreground">From your message</p>
           <ul className="mt-2 space-y-2">
             {linked.map((item) => (
               <li
                 key={item.id}
-                className="rounded border border-border/80 bg-console/80 px-3 py-2 font-mono text-xs leading-relaxed text-emerald-100/85"
+                className="rounded-xl border border-border bg-panel px-3 py-2.5 text-sm leading-relaxed text-foreground/85"
               >
                 <span className="line-clamp-4 whitespace-pre-wrap">
                   {item.content}
@@ -57,8 +44,8 @@ export function StageDetail({ stage, evidence }: Props) {
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
