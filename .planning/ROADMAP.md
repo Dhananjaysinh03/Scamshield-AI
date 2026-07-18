@@ -47,7 +47,7 @@
 
 | Phase | Status |
 |-------|--------|
-| 1 — Scaffold + Scan + Exa | Planned (2 plans) — ready to execute |
+| 1 — Scaffold + Scan + Exa | **Complete** (01-01, 01-02) |
 | 2 — Timeline | Pending |
 | 3 — Honeypot | Pending |
 | 4 — Polish + Ship | Pending |
