@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { scoreEvidence } from "@/lib/heuristics";
+import { emptyScan, scoreEvidence } from "@/lib/heuristics";
 import type { EvidenceItem, ScanResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -30,7 +30,7 @@ async function optionalLlmSummary(
           },
           {
             role: "user",
-            content: `Score ${scan.score} (${scan.riskLevel}). Signals: ${scan.signals.join("; ")}. Evidence:\n${texts.join("\n").slice(0, 2000)}`,
+            content: `Score ${scan.score} (${scan.riskLevel}). Verdict ${scan.verdict}. Signals: ${scan.signals.join("; ")}. Evidence:\n${texts.join("\n").slice(0, 2000)}`,
           },
         ],
       }),
@@ -52,16 +52,7 @@ export async function POST(req: Request) {
     const texts = evidence.map((e) => e.content).filter(Boolean);
 
     if (texts.length === 0) {
-      return NextResponse.json(
-        {
-          riskLevel: "low",
-          score: 0,
-          urls: [],
-          signals: ["No evidence provided"],
-          summary: "Add text or files before scanning.",
-        } satisfies ScanResult,
-        { status: 200 },
-      );
+      return NextResponse.json(emptyScan(), { status: 200 });
     }
 
     const scan = scoreEvidence(texts);

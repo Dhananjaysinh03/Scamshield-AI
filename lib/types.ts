@@ -10,12 +10,33 @@ export type EvidenceItem = {
 
 export type RiskLevel = "low" | "medium" | "high" | "critical";
 
+export type Verdict = "scam" | "likely_scam" | "suspicious" | "clean";
+
+export type ThreatCategory =
+  | "phishing"
+  | "payment_fraud"
+  | "malware_lure"
+  | "impersonation";
+
+export type MalwareFinding = {
+  detected: boolean;
+  indicators: string[];
+};
+
 export type ScanResult = {
   riskLevel: RiskLevel;
   score: number;
   urls: string[];
   signals: string[];
   summary: string;
+  /** Consumer-facing stamp */
+  verdict: Verdict;
+  /** Plain English for everyday users */
+  plainSummary: string;
+  /** What to do next (3 short lines) */
+  advice: string[];
+  categories: ThreatCategory[];
+  malware: MalwareFinding;
 };
 
 export type ExaMode = "live" | "demo" | "empty";
@@ -68,7 +89,6 @@ export type HoneypotStatusResponse = {
   injected: number;
   status: "running" | "done" | "error";
   lastProfilePreview?: string;
-  /** Recent synthetic profiles for UI ticker */
   recentProfiles?: string[];
   lines: string[];
 };
@@ -81,3 +101,9 @@ export type AudioReadoutRequest = {
 export type AudioReadoutResponse =
   | { mode: "live"; audioBase64: string; mime: string }
   | { mode: "stub"; message: string };
+
+export type OcrResponse = {
+  text: string;
+  mode: "live" | "stub";
+  message?: string;
+};

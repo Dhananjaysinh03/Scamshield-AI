@@ -40,8 +40,12 @@ export function ThreatReport({
       "═══════════════════════════════════════",
       "  SCAMSHIELD AI — THREAT REPORT",
       "═══════════════════════════════════════",
-      `Risk: ${snap.riskLevel.toUpperCase()}  |  Score: ${snap.score}/100`,
+      `Risk: ${snap.riskLevel.toUpperCase()}  |  Verdict: ${snap.verdict}  |  Score: ${snap.score}/100`,
+      `Plain: ${snap.plainSummary}`,
       `Summary: ${snap.summary}`,
+      snap.malware?.detected
+        ? `Malware lure: ${snap.malware.indicators.join("; ")}`
+        : "",
       "",
       "URLs:",
       ...(snap.urls.length ? snap.urls.map((u) => `  - ${u}`) : ["  (none)"]),

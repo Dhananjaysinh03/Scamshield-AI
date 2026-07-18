@@ -1,72 +1,40 @@
-# FE Handover Prompt — paste this to your frontend teammate
+# FE HANDOVER — Consumer product + technical vault (UPDATED)
 
----
-
-You are the **Frontend owner** for **ScamShield AI** (Cursor Hackathon Ahmedabad / Neural Nexus).
+## Live product goal
+Default UI = **light everyday “Is this a scam?”** (`SimpleCheck`).  
+Offensive SOC (Pitch mode, honeypot, Exa, timeline) lives under **Show technical details**.
 
 ## Repo
-https://github.com/Dhananjaysinh03/Scamshield-AI
+https://github.com/Dhananjaysinh03/Scamshield-AI  
+`git pull` — BE already shipped verdict / malware / OCR / SimpleCheck shell.
 
-```bash
-git pull origin master
-npm install
-cp .env.example .env.local   # BE has EXA key locally — you don't need it for UI work
-npm run dev
+## Your job now (polish, don’t rebuild engines)
+1. Match the light mock tighter (spacing, mint `#5bb89a`, mobile 375px).
+2. Improve Step 2 verdict card polish (icons optional, keep plain English).
+3. Ensure example chips + “Check this example” feel one-tap.
+4. Technical vault: make expand/collapse smooth; Pitch mode still works inside.
+5. Dark mode toggle already toggles CSS vars — refine if needed.
+6. Commit `feat(fe): polish consumer check flow`
+
+## APIs (ready)
+| Call | Use |
+|------|-----|
+| `POST /api/analyze` | Main check — returns `verdict`, `plainSummary`, `advice`, `malware`, timeline, intel |
+| `POST /api/ocr` | Screenshot → `{ text, mode, message? }` (needs `OPENAI_API_KEY` for live OCR) |
+| Existing honeypot / timeline / audio | Technical vault only |
+
+## ScanResult fields (use these)
+```ts
+verdict: "scam" | "likely_scam" | "suspicious" | "clean"
+plainSummary: string
+advice: string[]
+categories: ("phishing"|"payment_fraud"|"malware_lure"|"impersonation")[]
+malware: { detected: boolean, indicators: string[] }
 ```
 
-## Your mission (next ~2 hours)
-Make the **live demo + mobile prize** flawless. **No new product features** unless BE asks. Polish what exists.
+## Own
+`components/SimpleCheck.tsx`, consumer CSS in `globals.css`, vault UX.  
+Don’t break `Dashboard` APIs.
 
-### Must do
-1. **`git pull`** — latest includes Pitch mode, scenarios, Systems A/B/C badges, Threat Report, ProfileTicker.
-2. Rehearse on **375px / phone**:
-   - Scenario chips scroll OK
-   - **▶ Pitch mode** works end-to-end
-   - Timeline selectable
-   - Honeypot counter + profile torrent visible
-   - Copy threat report works
-3. Fix only **UI bugs**: overflow, cut-off buttons, tiny tap targets, spacing, contrast.
-4. Time a real **60-second pitch** with Pitch mode. Trim copy if anything feels slow.
-5. Commit as `feat(fe): …` and push to `master`.
-
-### Do NOT touch
-- `app/api/**`
-- `lib/heuristics.ts`, `lib/timeline.ts`, `lib/honeypot.ts`, `lib/audio.ts` (except types if BE asks)
-- Env secrets / Render config
-
-### Already wired (hit real APIs)
-| UI | API |
-|----|-----|
-| Scan | `POST /api/scan` |
-| Exa console | `POST /api/exa` |
-| Timeline | `POST /api/timeline` |
-| Honeypot | `POST /api/honeypot/start` + `GET/DELETE /api/honeypot/[jobId]` |
-| Audio | `POST /api/audio` |
-
-Mocks: `lib/mocks/config.ts` → `USE_MOCKS = false` (keep false). Fallback mocks only if API fails.
-
-### Own these files
-```
-components/**
-app/page.tsx
-app/globals.css
-lib/mocks/scenarios.ts   (copy only — don't break shapes)
-```
-
-### Pitch script (you speak / BE clicks, or reverse)
-1. “Not a ChatGPT wrapper.”
-2. Scenario → Pitch mode.
-3. **System C** Exa live intel.
-4. **System B** timeline stages.
-5. **System A** dismantle + counter + fake identities.
-6. Copy threat report for judges.
-
-### Done when
-- [ ] Phone demo smooth
-- [ ] Pitch mode < ~20s to honeypot arming
-- [ ] No horizontal overflow at 375px
-- [ ] Pushed to GitHub
-
-Questions → ping BE. Ship polish, not scope creep.
-
----
+## Do not
+Touch `app/api/**` or heuristics unless BE asks.

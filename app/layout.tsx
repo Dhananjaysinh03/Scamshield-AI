@@ -19,9 +19,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield AI",
+  title: "ScamShield — Check if a message is a scam",
   description:
-    "Offensive cyber-defense: live threat intel, stitched scam timelines, reverse-poison honeypots.",
+    "Paste a suspicious SMS, WhatsApp, or email. Get a plain-language scam check — plus live Exa intel and reverse-poison tools for power users.",
 };
 
 export default function RootLayout({

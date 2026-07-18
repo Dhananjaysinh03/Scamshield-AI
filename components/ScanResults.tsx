@@ -18,13 +18,20 @@ export function ScanResults({ result }: { result: ScanResult | null }) {
         <span
           className={`font-display text-2xl font-bold uppercase ${LEVEL_COLOR[result.riskLevel]}`}
         >
-          {result.riskLevel}
+          {result.verdict?.replace("_", " ") ?? result.riskLevel}
         </span>
         <span className="font-mono text-sm text-muted">
-          score {result.score}/100
+          {result.riskLevel} · score {result.score}/100
         </span>
       </div>
-      <p className="mt-2 text-sm text-foreground/90">{result.summary}</p>
+      <p className="mt-2 text-sm text-foreground/90">
+        {result.plainSummary ?? result.summary}
+      </p>
+      {result.malware?.detected ? (
+        <p className="mt-2 font-mono text-xs text-danger">
+          [Malware Trap]: {result.malware.indicators[0]}
+        </p>
+      ) : null}
       {result.urls.length > 0 ? (
         <ul className="mt-3 space-y-1 font-mono text-xs text-accent/90">
           {result.urls.map((u) => (
