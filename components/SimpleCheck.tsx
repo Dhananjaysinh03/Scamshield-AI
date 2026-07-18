@@ -304,6 +304,12 @@ export function SimpleCheck() {
                   {engineOnline ? "Engine live" : "Engine down"}
                 </span>
               ) : null}
+              <Link
+                href="/inbox"
+                className="hidden rounded-full bg-[var(--brand)] px-3 py-1.5 text-xs font-bold text-white sm:inline"
+              >
+                In Mail demo
+              </Link>
               <ThemeToggle />
               <Link
                 href="/inbox"

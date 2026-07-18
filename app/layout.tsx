@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./gmail.css";
+import "./landing-pitch.css";
 
 const fraunces = Fraunces({
   variable: "--font-display",

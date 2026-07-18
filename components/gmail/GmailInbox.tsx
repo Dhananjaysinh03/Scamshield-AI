@@ -239,6 +239,15 @@ export function GmailInbox() {
 
   return (
     <div className="gm-app">
+      <div className="gm-pitch-bar">
+        <span>
+          <strong>Pitch:</strong> open the red <em>HDFC</em> mail → trust popup
+          → ScamShield STOP + checklist
+        </span>
+        <Link href="/" className="gm-pitch-home">
+          Home
+        </Link>
+      </div>
       <header className="gm-top">
         <div className="gm-top-left">
           <button type="button" className="gm-icon-btn" aria-label="Main menu">
@@ -399,7 +408,7 @@ export function GmailInbox() {
                     return (
                       <li key={mail.id}>
                         <div
-                          className={`gm-row ${mail.unread ? "gm-row--unread" : ""}`}
+                          className={`gm-row ${mail.unread ? "gm-row--unread" : ""} ${mail.category === "phishing" && mail.id === "phish-hdfc" ? "gm-row--phish-hint" : ""}`}
                           onClick={() => openMail(mail)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") openMail(mail);

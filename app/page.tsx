@@ -1,64 +1,71 @@
 import Link from "next/link";
 import { LandingLiveCheck } from "@/components/LandingLiveCheck";
 
-const PARAMS = [
+const CHECKS = [
   {
-    name: "Who sent it",
+    icon: "👤",
+    name: "Sender",
     weight: "25%",
-    detail:
-      "Fake bank names, throwaway / temp-mail addresses, mismatched Reply-To, and lookalike domains.",
+    line: "Fake banks, temp-mail, Reply-To tricks",
   },
   {
-    name: "What it says",
+    icon: "💬",
+    name: "Pressure",
     weight: "20%",
-    detail:
-      "OTP asks, payment pressure, fake prizes, urgency (“frozen in 24 hours”), AnyDesk / screen share.",
+    line: "OTP, pay now, urgency, AnyDesk",
   },
   {
+    icon: "🔗",
     name: "Links",
     weight: "20%",
-    detail:
-      "Fake login pages, weird endings like .xyz, shortened links that hide the real site.",
+    line: "Fake login pages & shady domains",
   },
   {
+    icon: "📎",
     name: "Files",
     weight: "20%",
-    detail:
-      "Dangerous names like .exe or invoice.pdf.exe — we warn from the name; we never open the virus.",
+    line: "Dangerous names like .pdf.exe",
   },
   {
+    icon: "🛡️",
     name: "Headers",
     weight: "15%",
-    detail:
-      "SPF / DKIM / DMARC only if you paste them. We never invent a PASS.",
+    line: "SPF / DKIM / DMARC when present",
   },
 ];
 
-const KNOW = [
+const PATHS = [
   {
-    title: "Banks never ask for OTP by email",
-    body: "If a message wants the code from your SMS, it’s almost always a trap.",
+    icon: "📧",
+    title: "In Mail",
+    line: "Gmail-style inbox + ScamShield side panel",
+    href: "/inbox",
+    cta: "Open demo",
+    primary: true,
   },
   {
-    title: "From names are easy to fake",
-    body: "Anyone can type “HDFC Bank” as the display name. Check the real address behind it.",
+    icon: "⚡",
+    title: "Live check",
+    line: "One-tap fake bank OTP on this page",
+    href: "#live",
+    cta: "Try here",
+    primary: false,
   },
   {
-    title: "“Gift” files can be malware",
-    body: "Don’t open surprise attachments — especially double endings like .pdf.exe.",
+    icon: "🔬",
+    title: "Paste checker",
+    line: "Full evidence pack + JSON report",
+    href: "/check",
+    cta: "Open checker",
+    primary: false,
   },
-  {
-    title: "Never share your screen with “support”",
-    body: "AnyDesk / TeamViewer from a cold email is how accounts get emptied.",
-  },
-  {
-    title: "Same scam IDs show up again",
-    body: "ScamShield remembers when a From address or domain was flagged often — so you can spot repeat offenders.",
-  },
-  {
-    title: "When unsure, don’t click",
-    body: "Open your bank app yourself, or call a number you already know — not one from the email.",
-  },
+];
+
+const RULES = [
+  { icon: "🚫", title: "Never share OTP by email" },
+  { icon: "🎭", title: "From names are easy to fake" },
+  { icon: "💣", title: "Don’t open surprise .exe files" },
+  { icon: "🖥️", title: "Don’t share screen with “support”" },
 ];
 
 export default function LandingPage() {
@@ -69,126 +76,118 @@ export default function LandingPage() {
           <span className="lp-mark">S</span>
           <span>
             <strong>ScamShield</strong>
-            <em>Email scam check</em>
+            <em>Stop before you click</em>
           </span>
         </Link>
         <nav className="lp-nav-links">
-          <Link href="/inbox">In Mail demo</Link>
-          <a href="#live">Live check</a>
-          <a href="#params">What we check</a>
-          <Link href="/check" className="lp-cta">
-            Full product
+          <Link href="/inbox">In Mail</Link>
+          <Link href="/check">Checker</Link>
+          <Link href="/inbox" className="lp-cta">
+            Pitch demo →
           </Link>
         </nav>
       </header>
 
       <section className="lp-hero">
-        <p className="lp-kicker">One problem · one product</p>
+        <p className="lp-kicker">Hackathon pitch · 60s demo</p>
         <h1 className="font-display">
-          Got a weird email?
+          Weird email?
           <br />
-          <span className="lp-hero-accent">Stop before you click.</span>
+          <span className="lp-hero-accent">We stop the trap.</span>
         </h1>
         <p className="lp-lead">
-          ScamShield checks suspicious emails in plain language — then tells you
-          not to share OTP, pay money, open a file, or share your screen.
+          Paste or open mail → multi-factor check → HARD STOP before OTP, pay,
+          files, or screen share.
         </p>
         <div className="lp-hero-actions">
-          <Link href="/inbox" className="lp-btn-primary">
-            Open Gmail-style demo
+          <Link href="/inbox" className="lp-btn-primary lp-btn-lg">
+            ▶ Open In Mail demo
           </Link>
-          <a href="#live" className="lp-btn-ghost">
-            Run live check here
-          </a>
+          <Link href="/check" className="lp-btn-ghost lp-btn-lg">
+            Paste an email
+          </Link>
         </div>
-        <p className="lp-fine">
-          New: ScamShield sits in mail like Gemini — trust-sender popup, side
-          panel STOP, real analyzer on every demo message.
-        </p>
+      </section>
+
+      <section className="lp-section lp-paths">
+        <div className="lp-path-grid">
+          {PATHS.map((p) => (
+            <Link
+              key={p.title}
+              href={p.href}
+              className={`lp-path-card ${p.primary ? "lp-path-card--primary" : ""}`}
+            >
+              <span className="lp-path-icon" aria-hidden>
+                {p.icon}
+              </span>
+              <h3>{p.title}</h3>
+              <p>{p.line}</p>
+              <span className="lp-path-cta">{p.cta} →</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section id="params" className="lp-section">
+        <div className="lp-section-head">
+          <h2 className="font-display">5 checks. One STOP.</h2>
+          <p>No single keyword decides — we blend these signals.</p>
+        </div>
+        <div className="lp-check-grid">
+          {CHECKS.map((c) => (
+            <article key={c.name} className="lp-check-card">
+              <div className="lp-check-icon" aria-hidden>
+                {c.icon}
+              </div>
+              <div className="lp-check-meta">
+                <h3>{c.name}</h3>
+                <span>{c.weight}</span>
+              </div>
+              <p>{c.line}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <div id="live">
         <LandingLiveCheck />
       </div>
 
-      <section id="how" className="lp-section">
-        <h2 className="font-display">How it works</h2>
-        <ol className="lp-steps">
-          <li>
-            <strong>Paste</strong> the email (or run the built-in demo).
-          </li>
-          <li>
-            <strong>We score</strong> sender, words, links, files, and headers.
-          </li>
-          <li>
-            <strong>STOP</strong> shows first if it asks for something you can’t
-            undo.
-          </li>
-          <li>
-            <strong>Learn</strong> the pattern so you spot it next time.
-          </li>
-        </ol>
-      </section>
-
-      <section id="params" className="lp-section lp-section-alt">
-        <h2 className="font-display">What we check</h2>
-        <p className="lp-section-lead">
-          No single keyword decides. These parameters blend into one clear
-          result for everyday people.
-        </p>
-        <div className="lp-param-grid">
-          {PARAMS.map((p) => (
-            <article key={p.name} className="lp-param-card">
-              <div className="lp-param-top">
-                <h3>{p.name}</h3>
-                <span>{p.weight}</span>
-              </div>
-              <p>{p.detail}</p>
-            </article>
-          ))}
+      <section className="lp-section">
+        <div className="lp-section-head">
+          <h2 className="font-display">Remember these 4</h2>
+          <p>Short rules. That’s all.</p>
         </div>
-        <div className="lp-rep-callout">
-          <h3 className="font-display">Repeat scam email IDs</h3>
-          <p>
-            If the same From address or domain keeps showing up in scam-style
-            checks, ScamShield flags it:{" "}
-            <em>“This email ID is often used for scams.”</em> That’s a warning —
-            still verify before you act.
-          </p>
-        </div>
-      </section>
-
-      <section id="know" className="lp-section">
-        <h2 className="font-display">What everyone should know</h2>
-        <div className="lp-know-grid">
-          {KNOW.map((k) => (
-            <article key={k.title} className="lp-know-card">
-              <h3>{k.title}</h3>
-              <p>{k.body}</p>
+        <div className="lp-rule-grid">
+          {RULES.map((r) => (
+            <article key={r.title} className="lp-rule-card">
+              <span aria-hidden>{r.icon}</span>
+              <h3>{r.title}</h3>
             </article>
           ))}
         </div>
       </section>
 
       <section className="lp-finale">
-        <h2 className="font-display">See it inside the inbox</h2>
-        <p>
-          Open the Gmail-like demo — phishing, spam, and genuine mail — with
-          ScamShield as a side panel and “Do you trust this sender?” prompts.
-        </p>
-        <div className="lp-hero-actions" style={{ justifyContent: "center" }}>
-          <Link href="/inbox" className="lp-btn-primary">
-            Launch In Mail demo
-          </Link>
-          <Link href="/check" className="lp-btn-ghost" style={{ color: "#ecfdf5", borderColor: "rgba(236,253,245,0.35)", background: "transparent" }}>
-            Paste checker
-          </Link>
-        </div>
+        <h2 className="font-display">Pitch path</h2>
+        <ol className="lp-pitch-steps">
+          <li>
+            <strong>In Mail</strong> → open HDFC OTP
+          </li>
+          <li>
+            <strong>Trust popup</strong> + ScamShield STOP
+          </li>
+          <li>
+            <strong>Checklist</strong> shows flagged factors
+          </li>
+        </ol>
+        <Link href="/inbox" className="lp-btn-primary lp-btn-lg">
+          Launch demo now
+        </Link>
       </section>
 
       <footer className="lp-foot">
-        <p>ScamShield · email scam prevention for everyday people</p>
-        <p>Neural Nexus · Cursor Hackathon · Not an enterprise gateway</p>
+        <p>ScamShield · Neural Nexus · Cursor Hackathon</p>
       </footer>
     </div>
   );

@@ -26,124 +26,59 @@ export function LandingLiveCheck() {
       const data = (await res.json()) as EmailAnalysisResult;
       setResult(data);
     } catch {
-      setError("Check failed — open the full product and try again.");
+      setError("Check failed — open /check and try again.");
     } finally {
       setBusy(false);
     }
   }
 
-  const sender = result?.technicalFindings.sender;
-  const urls = result?.technicalFindings.urls.items ?? [];
-  const headers = result?.technicalFindings.headers;
+  const hard =
+    result?.preventionLevel === "hard_stop" || result?.verdict === "phishing";
 
   return (
     <section className="lp-live" aria-label="Live product check">
-      <div className="lp-live-head">
-        <p className="lp-kicker">Real API · not a mock</p>
-        <h2 className="font-display">See a live check on this page</h2>
-        <p className="lp-section-lead">
-          One tap runs the same engine as the product: parse → score → STOP +
-          evidence.
-        </p>
-      </div>
-
-      <div className="lp-live-card">
-        <div className="lp-live-actions">
+      <div className="lp-live-card lp-live-card--big">
+        <div className="lp-live-row">
+          <div>
+            <p className="lp-kicker">Real engine</p>
+            <h2 className="font-display">One-tap phishing check</h2>
+            <p className="lp-live-brief">
+              Fake HDFC OTP → same API as the product.
+            </p>
+          </div>
           <button
             type="button"
-            className="lp-btn-primary"
+            className="lp-btn-primary lp-btn-lg"
             disabled={busy}
             onClick={() => void run()}
           >
-            {busy ? "Analyzing…" : "Run fake-bank OTP check"}
+            {busy ? "Analyzing…" : "▶ Run check"}
           </button>
-          <Link href="/check" className="lp-btn-ghost">
-            Open full checker
-          </Link>
         </div>
 
         {error ? <p className="lp-live-error">{error}</p> : null}
 
-        {!result && !busy && !error ? (
-          <p className="lp-live-hint">
-            Sample: fake HDFC OTP from{" "}
-            <code>alerts@hdfc-secure-login.xyz</code> with SPF/DKIM fail
-            headers.
-          </p>
-        ) : null}
-
-        {busy && !result ? (
-          <div className="lp-live-skeleton" aria-busy="true">
-            <div />
-            <div />
-            <div />
-          </div>
-        ) : null}
-
         {result ? (
-          <div className="lp-live-result">
+          <div className={`lp-live-result ${hard ? "lp-live-result--bad" : ""}`}>
             <div className="lp-live-verdict">
               <strong>
-                {result.preventionLevel === "hard_stop"
-                  ? "HARD STOP"
-                  : result.verdict.toUpperCase()}
+                {hard ? "HARD STOP" : result.verdict.toUpperCase()}
               </strong>
               <span>
-                Score {result.riskScore}/100 · {result.confidence} confidence
+                {result.riskScore}/100 · {result.meta?.signalCount ?? "—"}{" "}
+                signals
               </span>
             </div>
-
-            <dl className="lp-live-facts">
-              <div>
-                <dt>From</dt>
-                <dd>{sender?.email || "—"}</dd>
-              </div>
-              <div>
-                <dt>Domain</dt>
-                <dd>{sender?.domain || "—"}</dd>
-              </div>
-              <div>
-                <dt>Links found</dt>
-                <dd>{urls.length}</dd>
-              </div>
-              <div>
-                <dt>SPF / DKIM / DMARC</dt>
-                <dd>
-                  {headers?.provided
-                    ? `${headers.spf || "—"} / ${headers.dkim || "—"} / ${headers.dmarc || "—"}`
-                    : "not in paste"}
-                </dd>
-              </div>
-            </dl>
-
-            {urls[0] ? (
-              <p className="lp-live-url">
-                <span>Link evidence</span>
-                <code>{urls[0].url}</code>
-                {urls[0].findings[0] ? (
-                  <em>{urls[0].findings[0]}</em>
-                ) : null}
-              </p>
-            ) : null}
-
-            {result.scamType.length > 0 ? (
-              <div className="lp-live-tags">
-                {result.scamType.slice(0, 5).map((t) => (
-                  <span key={t}>{t}</span>
-                ))}
-              </div>
-            ) : null}
-
-            {result.meta ? (
-              <p className="lp-live-meta">
-                Engine v{result.meta.engineVersion} · {result.meta.signalCount}{" "}
-                signals · {result.meta.durationMs}ms
-                {result.meta.exaEnriched ? " · live link intel" : ""}
-              </p>
-            ) : null}
-
-            <Link href="/check" className="lp-live-more">
-              See full evidence pack on /check →
+            <div className="lp-live-chips">
+              {(result.scamType.slice(0, 4).length
+                ? result.scamType.slice(0, 4)
+                : ["Checked"]
+              ).map((t) => (
+                <span key={t}>{t}</span>
+              ))}
+            </div>
+            <Link href="/inbox" className="lp-live-more">
+              See this inside Gmail demo →
             </Link>
           </div>
         ) : null}
