@@ -9,6 +9,7 @@ import { IntakePanel } from "@/components/IntakePanel";
 import { ScanResults } from "@/components/ScanResults";
 import { ThreatConsole } from "@/components/ThreatConsole";
 import { USE_MOCKS } from "@/lib/mocks/config";
+import { getDemoFunnelEvidence } from "@/lib/mocks/demoFunnel";
 import { getMockTimeline } from "@/lib/mocks/timeline";
 import type {
   EvidenceItem,
@@ -28,6 +29,18 @@ export function Dashboard() {
 
   function addEvidence(items: EvidenceItem[]) {
     setEvidence((prev) => [...prev, ...items]);
+  }
+
+  function loadDemoFunnel() {
+    const drops = getDemoFunnelEvidence();
+    setEvidence(drops);
+    setScan(null);
+    setTimeline(null);
+    setTimelineError(null);
+    setLines((prev) => [
+      ...prev,
+      "[Scan]: Demo funnel loaded — 3 drops (SMS → WhatsApp → payment).",
+    ]);
   }
 
   async function buildTimeline() {
@@ -157,6 +170,15 @@ export function Dashboard() {
   return (
     <div className="flex flex-col gap-8">
       <section data-testid="intake-region" className="flex flex-col gap-4">
+        <button
+          type="button"
+          onClick={loadDemoFunnel}
+          disabled={scanning}
+          className="min-h-11 w-full rounded-lg border border-dashed border-accent/50 bg-transparent px-4 text-sm font-semibold text-accent transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] disabled:opacity-40 sm:w-auto sm:self-start"
+        >
+          Load demo funnel
+        </button>
+
         <IntakePanel
           onAdd={addEvidence}
           onScan={() => void runScan()}
