@@ -213,8 +213,9 @@ export function SimpleCheck() {
             <p className="pitch-hint mt-4 max-w-3xl">
               Live demo: <strong>Bank OTP</strong> → HARD STOP →{" "}
               <strong>CEO gift virus</strong> → <strong>Temp-mail</strong> →{" "}
-              <strong>Normal email</strong> (contrast). We don’t prove From is
-              real — we stop irreversible actions.
+              <strong>CEO wire</strong> → <strong>Normal email</strong>{" "}
+              (contrast). Synthetic samples only — we stop OTP / pay / open
+              file, we don’t prove From is real.
             </p>
           </section>
 
