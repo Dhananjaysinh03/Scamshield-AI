@@ -121,39 +121,79 @@ export function Dashboard() {
     }
   }, []);
 
-  const runScan = useCallback(
-    async (ev?: EvidenceItem[]) => {
-      const payload = ev ?? evidenceRef.current;
-      if (!payload.length) {
-        setLines((prev) => [
+  const runScan = useCallback(async (ev?: EvidenceItem[]) => {
+    const payload = ev ?? evidenceRef.current;
+    if (!payload.length) {
+      setLines((prev) => [
+        ...prev,
+        "[Scan]: No evidence in session — add a drop first.",
+      ]);
+      return null;
+    }
+
+    setScanning(true);
+    setTimelineLoading(true);
+    setTimelineError(null);
+    setLines((prev) => [
+      ...prev,
+      "[Scan]: Fast pipeline — scan + Exa + timeline…",
+    ]);
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evidence: payload }),
+      });
+
+      if (!res.ok) throw new Error(`analyze ${res.status}`);
+
+      const data = (await res.json()) as {
+        scan: ScanResult;
+        timeline: TimelineResult;
+        intel: ExaResponse[];
+        ms: number;
+      };
+
+      setScan(data.scan);
+      setTimeline(data.timeline);
+      setLines((prev) => {
+        const next = [
           ...prev,
-          "[Scan]: No evidence in session — add a drop first.",
-        ]);
-        return null;
-      }
-
-      setScanning(true);
-      setLines((prev) => [...prev, "[Scan]: Analyzing evidence funnel…"]);
-
+          `[Scan]: risk=${data.scan.riskLevel} score=${data.scan.score} urls=${data.scan.urls.length} (${data.ms}ms)`,
+          `[Scan]: ${data.scan.summary}`,
+          `[Timeline]: ${data.timeline.stages.length} stages — ${data.timeline.narrative}`,
+        ];
+        for (const block of data.intel) {
+          next.push(...block.lines);
+        }
+        if (!data.intel.length) {
+          next.push(
+            "[Exa Threat Intel]: No URLs extracted — skipping live intel.",
+          );
+        }
+        return next;
+      });
+      return data.scan;
+    } catch {
+      setLines((prev) => [
+        ...prev,
+        "[Scan]: Fast pipeline failed — falling back…",
+      ]);
       try {
         const res = await fetch("/api/scan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ evidence: payload }),
         });
-        const data = (await res.json()) as ScanResult;
-        setScan(data);
+        const scanData = (await res.json()) as ScanResult;
+        setScan(scanData);
         setLines((prev) => [
           ...prev,
-          `[Scan]: risk=${data.riskLevel} score=${data.score} urls=${data.urls.length}`,
-          `[Scan]: ${data.summary}`,
+          `[Scan]: risk=${scanData.riskLevel} score=${scanData.score}`,
+          `[Scan]: ${scanData.summary}`,
         ]);
-
-        for (const url of data.urls) {
-          setLines((prev) => [
-            ...prev,
-            `[Exa Threat Intel]: Querying consensus for ${url}…`,
-          ]);
+        for (const url of scanData.urls) {
           try {
             const er = await fetch("/api/exa", {
               method: "POST",
@@ -163,31 +203,20 @@ export function Dashboard() {
             const intel = (await er.json()) as ExaResponse;
             setLines((prev) => [...prev, ...intel.lines]);
           } catch {
-            setLines((prev) => [
-              ...prev,
-              `[Exa Threat Intel]: Request failed for ${url}`,
-            ]);
+            /* continue */
           }
         }
-
-        if (data.urls.length === 0) {
-          setLines((prev) => [
-            ...prev,
-            "[Exa Threat Intel]: No URLs extracted — skipping live intel.",
-          ]);
-        }
-
         await buildTimeline(payload);
-        return data;
+        return scanData;
       } catch {
         setLines((prev) => [...prev, "[Scan]: Request failed."]);
         return null;
-      } finally {
-        setScanning(false);
       }
-    },
-    [buildTimeline],
-  );
+    } finally {
+      setScanning(false);
+      setTimelineLoading(false);
+    }
+  }, [buildTimeline]);
 
   async function runPitchMode() {
     setPitching(true);
