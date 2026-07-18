@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AttackTimeline } from "@/components/AttackTimeline";
+import { AudioAlertButton } from "@/components/AudioAlertButton";
 import { DismantlePanel } from "@/components/DismantlePanel";
 import { EvidenceList } from "@/components/EvidenceList";
 import { IntakePanel } from "@/components/IntakePanel";
@@ -69,15 +70,16 @@ export function Dashboard() {
 
       const data = (await res.json()) as TimelineResult;
       setTimeline(data);
-      setLines((prev) => [
-        ...prev,
-        `[Timeline]: ${data.stages.length} stages stitched.`,
-        data.narrative ? `[Timeline]: ${data.narrative}` : "",
-      ].filter(Boolean));
+      setLines((prev) =>
+        [
+          ...prev,
+          `[Timeline]: ${data.stages.length} stages stitched.`,
+          data.narrative ? `[Timeline]: ${data.narrative}` : "",
+        ].filter(Boolean),
+      );
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Timeline request failed.";
-      /* Offline / BE pending: fall back to mocks so pitch still works */
       const mock = getMockTimeline(evidence);
       setTimeline(mock);
       setTimelineError(null);
@@ -150,6 +152,8 @@ export function Dashboard() {
     }
   }
 
+  const pushLine = (line: string) => setLines((prev) => [...prev, line]);
+
   return (
     <div className="flex flex-col gap-8">
       <section data-testid="intake-region" className="flex flex-col gap-4">
@@ -180,12 +184,13 @@ export function Dashboard() {
 
       <section className="flex flex-col gap-4">
         <ScanResults result={scan} />
-        <DismantlePanel
-          scan={scan}
-          onConsoleLine={(line) =>
-            setLines((prev) => [...prev, line])
-          }
-        />
+        {scan ? (
+          <AudioAlertButton
+            summary={scan.summary}
+            onConsoleLine={pushLine}
+          />
+        ) : null}
+        <DismantlePanel scan={scan} onConsoleLine={pushLine} />
         <ThreatConsole lines={lines} />
       </section>
     </div>

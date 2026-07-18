@@ -87,7 +87,35 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .timeline-stage-in,
   .stage-glow,
-  .stage-detail-in {
+  .stage-detail-in,
+  .page-enter {
     animation: none;
   }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.4s ease-out both;
+}
+
+/* Touch-friendly press feedback for interactive controls */
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: scale(0.99);
+}
+
+/* Ensure focus rings visible on dark zinc */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
