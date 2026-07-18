@@ -15,6 +15,12 @@ const URGENCY = [
   "final notice",
   "account locked",
   "verify now",
+  "asap",
+  "expires",
+  "frozen",
+  "seized",
+  "destroyed",
+  "openings close",
 ];
 const AUTHORITY = [
   "rbi",
@@ -26,6 +32,14 @@ const AUTHORITY = [
   "microsoft support",
   "google security",
   "whatsapp",
+  "fraud desk",
+  "officer",
+  "india post",
+  "fir",
+  "compliance",
+  "hdfc",
+  "hr",
+  "onboarding",
 ];
 const PAYMENT = [
   "upi",
@@ -36,6 +50,12 @@ const PAYMENT = [
   "otp",
   "cvv",
   "net banking",
+  "pay ₹",
+  "pay rs",
+  "penalty",
+  "training kit",
+  "clearance",
+  "security hold",
 ];
 const BRANDS = [
   "paypal",
@@ -47,6 +67,21 @@ const BRANDS = [
   "icici",
   "amazon",
   "flipkart",
+  "google",
+  "linkedin",
+];
+const JOB_SCAM = [
+  "remote data entry",
+  "shortlisted",
+  "training kit",
+  "first task",
+  "aadhaar selfie",
+];
+const CUSTOMS_SCAM = [
+  "parcel is held",
+  "smuggling",
+  "clearance penalty",
+  "international parcel",
 ];
 
 function normalizeUrl(raw: string): string {
@@ -137,6 +172,18 @@ export function scoreEvidence(texts: string[]): ScanResult {
       signals.push(`Financial pressure: "${w}"`);
     }
   }
+  for (const w of JOB_SCAM) {
+    if (blob.includes(w)) {
+      score += 12;
+      signals.push(`Job-scam pattern: "${w}"`);
+    }
+  }
+  for (const w of CUSTOMS_SCAM) {
+    if (blob.includes(w)) {
+      score += 12;
+      signals.push(`Customs-scam pattern: "${w}"`);
+    }
+  }
 
   if (urls.length === 0 && score > 0) {
     score += 5;
@@ -145,6 +192,11 @@ export function scoreEvidence(texts: string[]): ScanResult {
   if (urls.length >= 2) {
     score += 8;
     signals.push("Multiple outbound links in funnel");
+  }
+  // Multi-drop funnel bonus (SMS → chat → pay)
+  if (texts.length >= 3 && score >= 40) {
+    score += 10;
+    signals.push("Multi-stage evidence funnel (3+ drops)");
   }
 
   score = Math.max(0, Math.min(100, score));

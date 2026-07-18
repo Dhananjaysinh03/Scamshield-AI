@@ -35,10 +35,18 @@ Build: `npm run build` then `npm start`.
 
 ## Deploy (Render)
 
-1. Connect repo on [Render](https://render.com)
-2. Use `render.yaml` or Web Service: build `npm install && npm run build`, start `npm start`, Node 20
-3. Set env vars in dashboard
-4. `output: 'standalone'` is enabled in `next.config.ts`
+1. Connect [Scamshield-AI](https://github.com/Dhananjaysinh03/Scamshield-AI) on Render
+2. Blueprint uses `render.yaml` — or Web Service:
+   - Build: `npm install && npm run build`
+   - Start: `npm start`
+   - Health: `/api/health`
+3. Set `EXA_API_KEY` (required for live intel)
+4. Optional: `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`
+
+## Team handoffs
+
+- FE prompt: `.planning/FE-HANDOVER-PROMPT.md`
+- Full FE plan: `.planning/FRONTEND-HANDOFF.md`
 
 ## Constraints
 

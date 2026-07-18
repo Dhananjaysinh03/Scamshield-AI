@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Standard Next start — compatible with Render `npm start`
 };
 
 export default nextConfig;

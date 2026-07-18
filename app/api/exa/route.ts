@@ -34,21 +34,26 @@ function asHits(results: unknown): IntelHit[] {
 }
 
 function mapLiveLines(url: string, results: IntelHit[]): string[] {
+  const host = hostnameOf(url);
   if (!results.length) {
     return [
-      `[Exa Threat Intel]: No public consensus found for ${hostnameOf(url)}.`,
+      `[Exa Threat Intel]: No public consensus found for ${host}.`,
+      `[Exa Threat Intel]: Treat unknown/new domains as hostile until proven otherwise.`,
     ];
   }
 
-  return results.slice(0, 3).map((r, i) => {
-    const highlight =
+  const header = `[Exa Threat Intel]: Live consensus for ${host} — ${results.length} source(s).`;
+  const body = results.slice(0, 3).map((r, i) => {
+    const raw =
       r.highlights?.filter(Boolean).join(" ") ||
-      r.text?.slice(0, 220) ||
+      r.text?.slice(0, 180) ||
       r.title ||
       "No excerpt";
+    const highlight = raw.replace(/\s+/g, " ").trim().slice(0, 220);
     const source = r.url ? ` (${r.url})` : "";
-    return `[Exa Threat Intel]: (${i + 1}) ${highlight.trim()}${source}`;
+    return `[Exa Threat Intel]: (${i + 1}) ${highlight}${source}`;
   });
+  return [header, ...body];
 }
 
 export async function POST(req: Request) {
@@ -74,7 +79,7 @@ export async function POST(req: Request) {
 
     const exa = new Exa(key);
     const host = hostnameOf(url);
-    const query = `phishing OR scam OR fraud OR "fake" ${host}`;
+    const query = `"${host}" (phishing OR scam OR fraud OR "fake login" OR "credential harvest")`;
 
     try {
       const response = await exa.search(query, {

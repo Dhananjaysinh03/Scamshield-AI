@@ -81,6 +81,11 @@ export function mockPollHoneypot(jobId: string): HoneypotStatusResponse {
     injected: job.injected,
     status: job.status,
     lastProfilePreview: preview,
+    recentProfiles: [
+      preview,
+      PREVIEWS[(job.injected + 1) % PREVIEWS.length],
+      PREVIEWS[(job.injected + 2) % PREVIEWS.length],
+    ],
     lines,
   };
 }
