@@ -25,10 +25,9 @@ Build: `npm run build` then `npm start`.
 
 | Method | Path | Body → notes |
 |--------|------|----------------|
-| POST | `/api/analyze` | `{ evidence }` → scan + timeline + parallel Exa (pitch-fast) |
-| POST | `/api/scan` | `{ evidence }` → risk score |
-| POST | `/api/exa` | `{ url }` → threat lines (demo if no key) |
-| POST | `/api/timeline` | `{ evidence }` → staged attack timeline |
+| POST | `/api/email-analyze` | **Core:** multi-factor email → SAFE/SUSPICIOUS/PHISHING JSON |
+| POST | `/api/analyze` | Message funnel: scan + Exa + timeline |
+| POST | `/api/ocr` | Screenshot → text |
 | GET | `/api/health` | uptime / key presence |
 | POST | `/api/honeypot/start` | `{ targetUrl, riskLevel, intensity? }` → `{ jobId }` (high/critical only; **simulated**) |
 | GET | `/api/honeypot/[jobId]` | poll every ~400ms → `{ injected, status, lines }` |
