@@ -1,17 +1,26 @@
-# MVP — SHIPPED (30-min demo)
+# MVP — SHIPPED (pitch demo)
 
 ## Live
 https://scamshield-ai-k6i1.onrender.com/
 
 ## What the product is
-**ScamShield** = paste a weird email → plain STOP before OTP / pay / open file / screen share.
+**ScamShield** = email phishing prevention for everyday people.  
+Multi-factor check → **HARD STOP** before OTP / pay / open file / screen share.  
+Also ships as **ScamShield in Mail** (Gmail-like inbox + side panel).
 
-## Demo script (90 seconds)
-1. Open live site  
-2. Tap **Try the demo** (fake bank OTP) → show **Stop first**  
-3. Open **How it works** tab → 4 steps  
-4. Optional: More examples → Normal email (contrast)  
-5. Say: “We don’t prove From is real. We stop irreversible actions.”
+## Demo script (60–90 seconds)
+1. Open live site `/`  
+2. Tap **Open In Mail demo** → `/inbox`  
+3. Open pulsing **HDFC OTP** mail  
+4. Show **trust popup** + **ScamShield** panel (security level + threat checklist + STOP)  
+5. Optional contrast: open **Priya / Lunch** (genuine)  
+6. Optional: `/check` for paste + evidence + JSON  
+7. Say: **“We don’t prove From is real. We stop irreversible actions.”**
+
+### Inbox interactions (if asked)
+- Select / archive / spam / delete / star / snooze  
+- Reply & Forward compose (demo send + toast)  
+- Shortcuts: `j`/`k` next mail · `e` archive · `c` compose · `u` unread · `Esc` back  
 
 ## Do NOT demo
 SMS, WhatsApp, honeypot vault, “100% virus”, Proofpoint clone.
@@ -21,9 +30,9 @@ SMS, WhatsApp, honeypot vault, “100% virus”, Proofpoint clone.
 git pull
 npm run dev
 ```
-Open http://localhost:3000
+Open http://localhost:3000 → `/inbox`
 
-## Pass checks (already verified)
+## Pass checks
 | Demo | Result |
 |------|--------|
 | Fake bank OTP | phishing · hard_stop |

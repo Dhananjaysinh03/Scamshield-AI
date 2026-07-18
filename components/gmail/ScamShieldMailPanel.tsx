@@ -192,6 +192,12 @@ export function ScamShieldMailPanel({
 }: Props) {
   const [scanStep, setScanStep] = useState(0);
   const [ask, setAsk] = useState("");
+  const [askReply, setAskReply] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAskReply(null);
+    setAsk("");
+  }, [mail.id]);
 
   useEffect(() => {
     if (!analyzing) {
@@ -205,6 +211,14 @@ export function ScamShieldMailPanel({
     return () => window.clearInterval(id);
   }, [analyzing, mail.id]);
 
+  useEffect(() => {
+    // Bring checklist into view when analysis finishes (pitch-friendly)
+    if (!analyzing && analysis) {
+      const el = document.getElementById("gm-ss-checklist");
+      el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [analyzing, analysis, mail.id]);
+
   const level = useMemo(
     () => securityLevel(analysis, analyzing),
     [analysis, analyzing],
@@ -217,10 +231,51 @@ export function ScamShieldMailPanel({
 
   const flaggedCount = checklist.filter((c) => c.status === "flagged").length;
   const clearCount = checklist.filter((c) => c.status === "clear").length;
+  const risky =
+    !!analysis &&
+    (analysis.preventionLevel === "hard_stop" ||
+      analysis.verdict === "phishing");
+
+  function explainLevel(): string {
+    if (!analysis) return "Still scanning — open this mail again in a moment.";
+    if (analysis.preventionLevel === "hard_stop") {
+      return `Security is Critical (score ${analysis.riskScore}/100). HARD STOP: do not share OTP, pay, open surprise files, or give remote access. We block irreversible actions — we don’t claim the From line is 100% proven.`;
+    }
+    if (analysis.verdict === "phishing") {
+      return `High phishing risk (${analysis.riskScore}/100). Treat this sender as untrusted until you verify out-of-band.`;
+    }
+    if (analysis.verdict === "suspicious") {
+      return `Medium caution (${analysis.riskScore}/100). Something looks off — verify before you click or reply.`;
+    }
+    return `Looks relatively safe (${analysis.riskScore}/100). Still don’t share OTPs by email.`;
+  }
+
+  function explainLinks(): string {
+    if (!analysis) return "Links are still being checked…";
+    const items = analysis.technicalFindings.urls.items;
+    const findings = items.flatMap((u) =>
+      u.findings.map((f) => `• ${u.url}: ${f}`),
+    );
+    if (findings.length) {
+      return findings.slice(0, 4).join("\n");
+    }
+    if (items.length) {
+      return `Found ${items.length} link(s). No extra trap text — still open only from trusted apps, never from pressure mail.`;
+    }
+    return analysis.verdict === "safe"
+      ? "No strong link traps flagged on this message."
+      : "Pressure + sender signals matter even when links look quiet — stay careful.";
+  }
 
   const prompts = [
-    { label: "Explain this security level", run: onRecheck },
-    { label: "Show why links look risky", run: onRecheck },
+    {
+      label: "Explain this security level",
+      run: () => setAskReply(explainLevel()),
+    },
+    {
+      label: "Show why links look risky",
+      run: () => setAskReply(explainLinks()),
+    },
     {
       label:
         trustStatus === "blocked"
@@ -234,24 +289,48 @@ export function ScamShieldMailPanel({
     const q = ask.trim().toLowerCase();
     setAsk("");
     if (!q) {
-      onRecheck();
+      setAskReply(explainLevel());
       return;
     }
     if (q.includes("block") || q.includes("scam") || q.includes("report")) {
+      setAskReply("Blocking this sender and moving the thread to Spam…");
       onBlock();
       return;
     }
     if (q.includes("trust")) {
+      if (risky) {
+        setAskReply(
+          "This mail looks high-risk. Trusting anyway is on you — ScamShield will remember the choice on this device.",
+        );
+      }
       onTrust();
       return;
     }
-    onRecheck();
+    if (q.includes("otp") || q.includes("pay") || q.includes("stop")) {
+      setAskReply(
+        "Never share OTP, pay, open unexpected files, or share your screen because of an email. Banks don’t ask for OTP by email.",
+      );
+      return;
+    }
+    if (q.includes("link") || q.includes("url")) {
+      setAskReply(explainLinks());
+      return;
+    }
+    if (q.includes("why") || q.includes("level") || q.includes("score")) {
+      setAskReply(explainLevel());
+      return;
+    }
+    setAskReply(
+      analysis
+        ? `Verdict: ${analysis.verdict.toUpperCase()} · score ${analysis.riskScore}/100 · ${analysis.preventionLevel === "hard_stop" ? "HARD STOP active" : "stay cautious"}. Ask about OTP, links, or block.`
+        : "Still analyzing — try again in a second.",
+    );
   }
 
   return (
     <aside className="gm-ss-panel" aria-label="ScamShield in Mail">
       <header className="gm-ss-head">
-        <button type="button" className="gm-icon-btn" aria-label="Menu">
+        <button type="button" className="gm-icon-btn" aria-label="Menu" onClick={onRecheck}>
           ☰
         </button>
         <strong className="gm-ss-name">ScamShield</strong>
@@ -295,7 +374,11 @@ export function ScamShieldMailPanel({
           <code>{mail.fromEmail}</code>
         </p>
 
-        <section className="gm-check-block" aria-label="Threat checklist">
+        <section
+          id="gm-ss-checklist"
+          className="gm-check-block"
+          aria-label="Threat checklist"
+        >
           <div className="gm-check-head">
             <h3>Threat checklist</h3>
             {!analyzing && analysis ? (
@@ -360,17 +443,39 @@ export function ScamShieldMailPanel({
               {p.label}
             </button>
           ))}
+          <button type="button" onClick={onRecheck}>
+            <span aria-hidden>↻</span>
+            Re-scan this email
+          </button>
         </div>
 
+        {askReply ? (
+          <div className="gm-ss-ask-reply" role="status">
+            <strong>ScamShield</strong>
+            <p>{askReply}</p>
+            <button type="button" onClick={() => setAskReply(null)}>
+              Dismiss
+            </button>
+          </div>
+        ) : null}
+
         {trustStatus === "unknown" ? (
-          <div className="gm-ss-trust-card">
-            <p>Do you trust this sender?</p>
+          <div className={`gm-ss-trust-card ${risky ? "gm-ss-trust-card--risk" : ""}`}>
+            <p>
+              {risky
+                ? "High risk — do you still trust this sender?"
+                : "Do you trust this sender?"}
+            </p>
             <div>
-              <button type="button" className="gm-btn-trust" onClick={onTrust}>
-                Yes, I trust them
-              </button>
               <button type="button" className="gm-btn-block" onClick={onBlock}>
                 No, block sender
+              </button>
+              <button
+                type="button"
+                className={risky ? "gm-btn-trust gm-btn-trust--ghost" : "gm-btn-trust"}
+                onClick={onTrust}
+              >
+                {risky ? "Trust anyway" : "Yes, I trust them"}
               </button>
             </div>
           </div>
@@ -379,7 +484,16 @@ export function ScamShieldMailPanel({
 
       <footer className="gm-ss-foot">
         <div className="gm-ss-ask">
-          <button type="button" className="gm-ss-ask-icon" aria-label="Add">
+          <button
+            type="button"
+            className="gm-ss-ask-icon"
+            aria-label="Quick prompts"
+            onClick={() =>
+              setAskReply(
+                "Try asking: Why is this Critical? · Are the links safe? · Should I block? · What about OTP?",
+              )
+            }
+          >
             +
           </button>
           <input

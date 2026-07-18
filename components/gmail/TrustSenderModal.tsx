@@ -80,12 +80,29 @@ export function TrustSenderModal({
         )}
 
         <div className="gm-modal-actions">
-          <button type="button" className="gm-btn-trust" onClick={onTrust}>
-            Yes, I trust them
-          </button>
-          <button type="button" className="gm-btn-block" onClick={onBlock}>
-            No, block sender
-          </button>
+          {risk === "high" || risk === "medium" ? (
+            <>
+              <button type="button" className="gm-btn-block" onClick={onBlock}>
+                No, block sender
+              </button>
+              <button
+                type="button"
+                className="gm-btn-trust gm-btn-trust--ghost"
+                onClick={onTrust}
+              >
+                Trust anyway
+              </button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="gm-btn-trust" onClick={onTrust}>
+                Yes, I trust them
+              </button>
+              <button type="button" className="gm-btn-block" onClick={onBlock}>
+                No, block sender
+              </button>
+            </>
+          )}
         </div>
 
         <button type="button" className="gm-modal-later" onClick={onDismiss}>
