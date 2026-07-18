@@ -1,8 +1,12 @@
 /**
- * In-memory sender reputation for MVP (no DB).
- * Counts how often a From address / domain was flagged as phishing in this server process.
- * Seeded with known demo scam identities so the pitch shows “often used for scams”.
+ * In-memory + file-backed sender reputation (no DB).
+ * Counts how often a From address / domain was flagged as phishing.
+ * Seeded with known demo scam identities; persists across warm restarts when /tmp is writable.
  */
+
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 
 export type SenderReputation = {
   email: string | null;
@@ -13,9 +17,12 @@ export type SenderReputation = {
 };
 
 type Entry = { count: number; lastAt: number };
+type Store = { emails: Record<string, Entry>; domains: Record<string, Entry> };
 
 const byEmail = new Map<string, Entry>();
 const byDomain = new Map<string, Entry>();
+
+const STORE_PATH = join(tmpdir(), "scamshield-sender-reputation.json");
 
 /** Domains that repeatedly appear in phishing kits / temp mail (demo + heuristics) */
 const KNOWN_BAD_DOMAINS = new Set([
@@ -48,6 +55,29 @@ function getCount(map: Map<string, Entry>, key: string | null): number {
   return map.get(key.toLowerCase().trim())?.count || 0;
 }
 
+function loadStore() {
+  try {
+    if (!existsSync(STORE_PATH)) return;
+    const data = JSON.parse(readFileSync(STORE_PATH, "utf8")) as Store;
+    for (const [k, v] of Object.entries(data.emails || {})) byEmail.set(k, v);
+    for (const [k, v] of Object.entries(data.domains || {})) byDomain.set(k, v);
+  } catch {
+    /* first boot */
+  }
+}
+
+function persistStore() {
+  try {
+    const data: Store = {
+      emails: Object.fromEntries(byEmail),
+      domains: Object.fromEntries(byDomain),
+    };
+    writeFileSync(STORE_PATH, JSON.stringify(data), "utf8");
+  } catch {
+    /* ephemeral FS may deny writes */
+  }
+}
+
 /** Seed so first demo already shows reputation for known scam senders */
 export function seedKnownBadSenders() {
   for (const d of KNOWN_BAD_DOMAINS) {
@@ -68,11 +98,13 @@ export function seedKnownBadSenders() {
   }
 }
 
+loadStore();
 seedKnownBadSenders();
 
 export function recordPhishingSender(email: string | null, domain: string | null) {
   if (email) bump(byEmail, email);
   if (domain) bump(byDomain, domain);
+  persistStore();
 }
 
 export function lookupSenderReputation(
@@ -110,5 +142,13 @@ export function lookupSenderReputation(
     timesFlagged: knownBad ? Math.max(timesFlagged, 8) : timesFlagged,
     level,
     plainMessage,
+  };
+}
+
+export function reputationStats() {
+  return {
+    trackedEmails: byEmail.size,
+    trackedDomains: byDomain.size,
+    storePath: STORE_PATH,
   };
 }

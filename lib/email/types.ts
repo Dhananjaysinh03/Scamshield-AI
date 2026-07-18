@@ -84,4 +84,22 @@ export type EmailAnalysisResult = {
     attachments: number;
     headers: number;
   };
+  /** Engine run metadata — proves a real analysis happened */
+  meta: {
+    engineVersion: string;
+    analyzedAt: string;
+    durationMs: number;
+    factorsUsed: number;
+    signalCount: number;
+    exaEnriched: boolean;
+  };
+  /** Paste quality hints for the UI */
+  inputQuality: {
+    score: number;
+    hasFrom: boolean;
+    hasSubject: boolean;
+    hasUrls: boolean;
+    hasAuthHeaders: boolean;
+    warnings: string[];
+  };
 };

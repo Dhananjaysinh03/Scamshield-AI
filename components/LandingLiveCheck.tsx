@@ -134,6 +134,14 @@ export function LandingLiveCheck() {
               </div>
             ) : null}
 
+            {result.meta ? (
+              <p className="lp-live-meta">
+                Engine v{result.meta.engineVersion} · {result.meta.signalCount}{" "}
+                signals · {result.meta.durationMs}ms
+                {result.meta.exaEnriched ? " · live link intel" : ""}
+              </p>
+            ) : null}
+
             <Link href="/check" className="lp-live-more">
               See full evidence pack on /check →
             </Link>

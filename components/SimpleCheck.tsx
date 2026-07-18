@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EvidencePanel } from "@/components/EvidencePanel";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   clearCheckHistory,
   downloadAnalysisReport,
@@ -15,6 +16,7 @@ import {
   FEATURED_DEMO_ID,
   type EmailDemoId,
 } from "@/lib/email/demos";
+import { formatVerdictShare } from "@/lib/email/formatVerdictShare";
 import type {
   DangerousIntent,
   EmailAnalysisResult,
@@ -23,6 +25,13 @@ import type {
 import type { OcrResponse } from "@/lib/types";
 
 type TabId = "check" | "how" | "history";
+
+const ANALYZE_STEPS = [
+  "Parsing headers & sender…",
+  "Scoring content & pressure…",
+  "Scanning links & files…",
+  "Applying STOP rules…",
+];
 
 const VERDICT_STYLE: Record<
   EmailVerdict,
@@ -103,11 +112,30 @@ export function SimpleCheck() {
   const [showMoreDemos, setShowMoreDemos] = useState(false);
   const [history, setHistory] = useState<CheckHistoryItem[]>([]);
   const [showEvidence, setShowEvidence] = useState(true);
+  const [analyzeStep, setAnalyzeStep] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [engineOnline, setEngineOnline] = useState<boolean | null>(null);
   const resultRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setHistory(loadCheckHistory());
+    void fetch("/api/email-analyze")
+      .then((r) => r.ok)
+      .then(setEngineOnline)
+      .catch(() => setEngineOnline(false));
   }, []);
+
+  useEffect(() => {
+    if (!busy) {
+      setAnalyzeStep(0);
+      return;
+    }
+    setAnalyzeStep(0);
+    const id = window.setInterval(() => {
+      setAnalyzeStep((s) => Math.min(s + 1, ANALYZE_STEPS.length - 1));
+    }, 280);
+    return () => window.clearInterval(id);
+  }, [busy]);
 
   const featured =
     EMAIL_DEMOS.find((d) => d.id === FEATURED_DEMO_ID) || EMAIL_DEMOS[0];
@@ -167,6 +195,17 @@ export function SimpleCheck() {
     void runEmailAnalyze(text.trim());
   }
 
+  async function copyShare() {
+    if (!result) return;
+    try {
+      await navigator.clipboard.writeText(formatVerdictShare(result));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setError("Couldn’t copy — try Download JSON instead.");
+    }
+  }
+
   function runDemo(id: EmailDemoId) {
     const demo = EMAIL_DEMOS.find((d) => d.id === id) || EMAIL_DEMOS[0];
     setDemoId(demo.id);
@@ -186,7 +225,12 @@ export function SimpleCheck() {
     ) {
       const content = await file.text();
       setText(content);
-      setOcrNote("File loaded — tap Check email.");
+      if (/\.eml$/i.test(file.name)) {
+        setOcrNote("Email file loaded — running check…");
+        await runEmailAnalyze(content);
+      } else {
+        setOcrNote("File loaded — tap Check email.");
+      }
       return;
     }
 
@@ -248,6 +292,19 @@ export function SimpleCheck() {
               </div>
             </Link>
             <div className="flex shrink-0 items-center gap-2">
+              {engineOnline !== null ? (
+                <span
+                  className={`engine-pill ${engineOnline ? "engine-pill--on" : "engine-pill--off"}`}
+                  title={
+                    engineOnline
+                      ? "Analyzer API is reachable"
+                      : "Analyzer API unreachable"
+                  }
+                >
+                  {engineOnline ? "Engine live" : "Engine down"}
+                </span>
+              ) : null}
+              <ThemeToggle />
               <Link
                 href="/"
                 className="hidden text-xs font-semibold text-[var(--ink-muted)] transition hover:text-[var(--ink)] sm:inline"
@@ -510,10 +567,20 @@ export function SimpleCheck() {
                         setText(e.target.value);
                         setDemoId(null);
                       }}
+                      onKeyDown={(e) => {
+                        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                          e.preventDefault();
+                          checkPaste();
+                        }
+                      }}
                       disabled={busy}
                       placeholder={`From: ...\nSubject: ...\n\nPaste the message you received`}
                       className="ss-textarea mt-1.5 w-full flex-1 resize-none rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 py-3 text-sm leading-relaxed text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30 disabled:opacity-60"
                     />
+                    <p className="mt-1.5 text-[11px] text-[var(--ink-muted)]">
+                      Tip: paste full headers when you can · Ctrl/⌘+Enter to
+                      check
+                    </p>
                   </label>
 
                   <div className="mt-2.5 flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
@@ -567,10 +634,29 @@ export function SimpleCheck() {
                     aria-live="polite"
                   >
                     <p className="text-base font-medium text-[var(--brand-dim)]">
-                      Checking the email…
+                      Running real analysis…
                     </p>
-                    <div className="h-16 animate-pulse rounded-2xl bg-[var(--input)]" />
-                    <div className="h-12 animate-pulse rounded-2xl bg-[var(--input)]" />
+                    <ul className="space-y-2">
+                      {ANALYZE_STEPS.map((step, i) => (
+                        <li
+                          key={step}
+                          className={`analyze-step ${i <= analyzeStep ? "analyze-step--active" : ""} ${i < analyzeStep ? "analyze-step--done" : ""}`}
+                        >
+                          <span aria-hidden>
+                            {i < analyzeStep ? "✓" : i === analyzeStep ? "●" : "○"}
+                          </span>
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="h-2 overflow-hidden rounded-full bg-[var(--input)]">
+                      <div
+                        className="analyze-bar h-full rounded-full bg-[var(--brand)]"
+                        style={{
+                          width: `${((analyzeStep + 1) / ANALYZE_STEPS.length) * 100}%`,
+                        }}
+                      />
+                    </div>
                   </div>
                 ) : null}
 
@@ -589,6 +675,44 @@ export function SimpleCheck() {
 
                 {result ? (
                   <div className="result-stack space-y-3 pb-1">
+                    {result.meta ? (
+                      <div className="stats-strip" aria-label="Analysis stats">
+                        <div>
+                          <span>Score</span>
+                          <strong>{result.riskScore}</strong>
+                        </div>
+                        <div>
+                          <span>Signals</span>
+                          <strong>{result.meta.signalCount}</strong>
+                        </div>
+                        <div>
+                          <span>Factors</span>
+                          <strong>{result.meta.factorsUsed}</strong>
+                        </div>
+                        <div>
+                          <span>Time</span>
+                          <strong>{result.meta.durationMs}ms</strong>
+                        </div>
+                        <div>
+                          <span>Engine</span>
+                          <strong>v{result.meta.engineVersion}</strong>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {result.inputQuality?.warnings?.length ? (
+                      <div className="quality-note">
+                        <p className="text-xs font-bold uppercase tracking-wide">
+                          Paste quality {result.inputQuality.score}/100
+                        </p>
+                        <ul className="mt-1 list-disc pl-4 text-xs leading-relaxed">
+                          {result.inputQuality.warnings.map((w) => (
+                            <li key={w}>{w}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
                     {hasHardStop ? (
                       <div className="hard-stop-card" role="alert">
                         <p className="hard-stop-kicker">Stop first</p>
@@ -701,6 +825,13 @@ export function SimpleCheck() {
                         onClick={() => setShowEvidence((v) => !v)}
                       >
                         {showEvidence ? "Hide evidence" : "Show live evidence"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost-sm"
+                        onClick={() => void copyShare()}
+                      >
+                        {copied ? "Copied ✓" : "Copy verdict"}
                       </button>
                       <button
                         type="button"

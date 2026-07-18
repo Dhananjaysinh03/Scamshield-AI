@@ -98,15 +98,21 @@ export function parseEmail(rawInput: string): ParsedEmail {
     body = headerSplit[2];
     hasHeaderBlock = true;
   } else {
-    // Soft parse: lines at top that look like headers
+    // Soft parse: lines at top that look like headers (incl. auth / received)
     const lines = raw.split("\n");
     const soft: string[] = [];
     let i = 0;
-    for (; i < Math.min(lines.length, 40); i++) {
-      if (/^(from|to|subject|reply-to|return-path|date|cc|bcc):\s*/i.test(lines[i])) {
-        soft.push(lines[i]);
+    const headerLine =
+      /^(from|to|subject|reply-to|return-path|date|cc|bcc|authentication-results|received|message-id|mime-version|content-type):\s*/i;
+    for (; i < Math.min(lines.length, 80); i++) {
+      const line = lines[i];
+      if (headerLine.test(line)) {
+        soft.push(line);
         hasHeaderBlock = true;
-      } else if (soft.length && lines[i].trim() === "") {
+      } else if (soft.length && /^\s/.test(line) && line.trim()) {
+        // folded header continuation
+        soft[soft.length - 1] += " " + line.trim();
+      } else if (soft.length && line.trim() === "") {
         i++;
         break;
       } else if (soft.length === 0) {
@@ -118,6 +124,14 @@ export function parseEmail(rawInput: string): ParsedEmail {
     if (soft.length) {
       headerBlock = soft.join("\n");
       body = lines.slice(i).join("\n");
+    }
+  }
+
+  // Also pull Authentication-Results from anywhere near the top if missing
+  if (hasHeaderBlock && !/authentication-results:/i.test(headerBlock)) {
+    const authAnywhere = raw.match(/^Authentication-Results:[\s\S]*?(?=\n[A-Za-z-]+:|\n\n)/im);
+    if (authAnywhere) {
+      headerBlock = `${headerBlock}\n${authAnywhere[0]}`.trim();
     }
   }
 

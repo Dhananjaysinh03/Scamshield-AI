@@ -355,6 +355,15 @@ function analyzeSender(
     findings.push("Return-Path domain does not align with From domain.");
   }
 
+  // Homoglyph / odd unicode in display name (common spoof trick)
+  if (displayName && /[^\x00-\x7F]/.test(displayName) && brandInText(displayName)) {
+    score += 25;
+    findings.push(
+      "Display name mixes unusual characters with a brand name — often used to look official.",
+    );
+    scamTypes.push("Homoglyph Display Name");
+  }
+
   return {
     findings,
     score: clamp(score),
@@ -1127,8 +1136,9 @@ function verdictFromScore(
  */
 export function analyzeEmailRaw(
   raw: string,
-  options?: { officialDomain?: string },
+  options?: { officialDomain?: string; startedAt?: number },
 ): EmailAnalysisResult {
+  const startedAt = options?.startedAt ?? Date.now();
   const parsed = parseEmail(raw);
   const sender = analyzeSender(parsed, options?.officialDomain);
   const content = analyzeContent(parsed.body, parsed.subject);
@@ -1301,5 +1311,52 @@ export function analyzeEmailRaw(
       attachments: 20,
       headers: headers.provided ? 15 : 0,
     },
+    meta: {
+      engineVersion: "1.2.0",
+      analyzedAt: new Date().toISOString(),
+      durationMs: Math.max(1, Date.now() - startedAt),
+      factorsUsed: 4 + (headers.provided ? 1 : 0),
+      signalCount:
+        sender.findings.length +
+        content.findings.length +
+        urls.items.reduce((n, u) => n + u.findings.length, 0) +
+        attachments.items.reduce((n, a) => n + a.findings.length, 0) +
+        (headers.provided ? headers.findings.length : 0),
+      exaEnriched: false,
+    },
+    inputQuality: (() => {
+      const warnings: string[] = [];
+      if (raw.trim().length < 40) {
+        warnings.push(
+          "Paste looks short — include From, Subject, and the message body.",
+        );
+      }
+      if (!parsed.fromEmail) {
+        warnings.push(
+          "No From address found — paste the full email if you can.",
+        );
+      }
+      if (!parsed.subject) warnings.push("No Subject line found.");
+      if (!headers.provided) {
+        warnings.push(
+          "No SPF/DKIM/DMARC in paste — forward as .eml for a deeper header check.",
+        );
+      }
+      let score = 40;
+      if (parsed.fromEmail) score += 20;
+      if (parsed.subject) score += 10;
+      if (parsed.urls.length) score += 10;
+      if (headers.provided) score += 20;
+      if (raw.trim().length > 120) score += 10;
+      return {
+        score: Math.min(100, score),
+        hasFrom: !!parsed.fromEmail,
+        hasSubject: !!parsed.subject,
+        hasUrls: parsed.urls.length > 0,
+        hasAuthHeaders:
+          headers.provided && !!(parsed.spf || parsed.dkim || parsed.dmarc),
+        warnings,
+      };
+    })(),
   };
 }
