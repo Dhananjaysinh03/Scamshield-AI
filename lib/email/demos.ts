@@ -1,23 +1,27 @@
 export type EmailDemoId =
   | "bank_otp"
   | "ceo_gift"
-  | "ceo_fraud"
   | "temp_mail"
-  | "invoice_malware"
-  | "remote_access";
+  | "ceo_fraud"
+  | "safe_ok";
 
-/** Pitch order: OTP → CEO gift virus → CEO wire → temp-mail → invoice → remote */
+/**
+ * Judge demo rail (max 5): attacks first, then safe contrast.
+ * Pitch order: OTP → CEO gift → temp-mail → CEO wire → safe.
+ */
 export const EMAIL_DEMOS: {
   id: EmailDemoId;
   label: string;
   line: string;
   raw: string;
   officialDomain?: string;
+  tone?: "attack" | "safe";
 }[] = [
   {
     id: "bank_otp",
     label: "Bank OTP",
     line: "Fake bank asks for OTP",
+    tone: "attack",
     raw: `From: HDFC Bank Security <alerts@hdfc-secure-login.xyz>
 To: customer@email.com
 Subject: URGENT: Confirm OTP to stop account freeze
@@ -34,7 +38,8 @@ HDFC Fraud Desk`,
   {
     id: "ceo_gift",
     label: "CEO gift virus",
-    line: "CEO on Gmail — gift file is malware",
+    line: "CEO on Gmail — gift is malware",
+    tone: "attack",
     officialDomain: "acme.com",
     raw: `From: "Rahul Sharma, CEO" <ceo.acme.corp@gmail.com>
 To: all@acme.com
@@ -50,9 +55,26 @@ Attachment: Gift_Card.pdf.exe
 Download: https://gift-claim-secure.xyz/Gift_Card.pdf.exe`,
   },
   {
+    id: "temp_mail",
+    label: "Temp-mail",
+    line: "Disposable From + OTP ask",
+    tone: "attack",
+    raw: `From: "SBI Secure" <sbi-alerts@smailpro.com>
+To: you@email.com
+Reply-To: drop@guerrillamail.com
+Subject: Verify OTP to keep account active
+
+Dear Customer,
+
+Your account will be suspended. Reply with the OTP sent to your phone or click https://sbi-secure-login.xyz/verify
+
+SBI Security Team`,
+  },
+  {
     id: "ceo_fraud",
     label: "CEO wire",
-    line: "Boss on Gmail asks for urgent wire",
+    line: "Boss on Gmail asks for wire",
+    tone: "attack",
     officialDomain: "acme.com",
     raw: `From: "Rahul Sharma, CEO" <ceo.acme.corp@gmail.com>
 To: finance@acme.com
@@ -70,48 +92,16 @@ Rahul Sharma
 CEO`,
   },
   {
-    id: "temp_mail",
-    label: "Temp-mail",
-    line: "Disposable From + OTP ask",
-    raw: `From: "SBI Secure" <sbi-alerts@smailpro.com>
-To: you@email.com
-Reply-To: drop@guerrillamail.com
-Subject: Verify OTP to keep account active
+    id: "safe_ok",
+    label: "Normal email",
+    line: "Contrast — no phishing lure",
+    tone: "safe",
+    raw: `From: "Priya Sharma" <priya.shopper@gmail.com>
+To: friend@example.com
+Subject: Lunch tomorrow?
 
-Dear Customer,
+Hey — are we still on for lunch at 1pm near the office? No rush, just confirm when you can.
 
-Your account will be suspended. Reply with the OTP sent to your phone or click https://sbi-secure-login.xyz/verify
-
-SBI Security Team`,
-  },
-  {
-    id: "invoice_malware",
-    label: "Fake invoice",
-    line: "Looks like PDF — is malware",
-    raw: `From: Billing <accounts@paypal-secure-pay.xyz>
-To: you@example.com
-Subject: Invoice 88214 — payment overdue
-
-Your invoice is attached. Open Invoice_88214.pdf.exe and pay immediately to avoid suspension.
-
-Attachment: Invoice_88214.pdf.exe
-Download: https://paypal-secure-pay.xyz/files/Invoice_88214.pdf.exe`,
-  },
-  {
-    id: "remote_access",
-    label: "Fake support",
-    line: "Install AnyDesk / share screen",
-    raw: `From: "Paytm Customer Care" <care@paytm-helpdesk.xyz>
-To: you@email.com
-Subject: Refund pending — install AnyDesk to receive money
-
-Dear User,
-
-Your refund of ₹12,400 is pending. Please install AnyDesk and share your screen with our executive so we can credit it immediately.
-
-Download: https://paytm-helpdesk.xyz/anydesk
-Reply with your AnyDesk ID.
-
-Paytm Support`,
+Priya`,
   },
 ];

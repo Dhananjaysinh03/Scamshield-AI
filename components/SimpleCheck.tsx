@@ -40,7 +40,7 @@ function barColor(score: number): string {
 
 export function SimpleCheck() {
   const [text, setText] = useState("");
-  const [demoId, setDemoId] = useState<EmailDemoId | null>("bank_otp");
+  const [demoId, setDemoId] = useState<EmailDemoId | null>(null);
   const [result, setResult] = useState<EmailAnalysisResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +114,11 @@ export function SimpleCheck() {
     setDemoId(demo.id);
     setText(demo.raw);
     setOcrNote(null);
-    if (demo.officialDomain) setOfficialDomain(demo.officialDomain);
+    if (demo.officialDomain) {
+      setOfficialDomain(demo.officialDomain);
+    } else if (demo.tone === "safe") {
+      setOfficialDomain("");
+    }
     void runEmailAnalyze(demo.raw, demo.officialDomain);
   }
 
@@ -178,7 +182,7 @@ export function SimpleCheck() {
               S
             </span>
             <div className="min-w-0">
-              <p className="truncate text-base font-bold tracking-tight text-[var(--ink)]">
+              <p className="truncate font-display text-base font-bold tracking-tight text-[var(--ink)]">
                 ScamShield
               </p>
               <p className="text-[11px] text-[var(--ink-muted)]">
@@ -192,20 +196,29 @@ export function SimpleCheck() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-dim)]">
             One problem · one product
           </p>
-          <h1 className="mt-2 text-[1.65rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
+          <h1 className="font-display mt-2 text-[1.65rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
             Stop email phishing before you click, pay, or share OTP
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--ink-muted)] sm:text-[0.95rem]">
-            Paste a suspicious email. We score sender + links + files + intent,
-            then{" "}
+            Paste a suspicious email. Multi-factor check →{" "}
             <strong className="font-semibold text-[var(--ink)]">HARD STOP</strong>{" "}
-            irreversible actions — and teach you the pattern.
+            on irreversible actions — then learn the pattern.
+          </p>
+
+          <p className="pitch-hint mt-4">
+            Live demo path: <strong>Bank OTP</strong> → HARD STOP →{" "}
+            <strong>CEO gift virus</strong> → <strong>Temp-mail</strong> →{" "}
+            <strong>Normal email</strong> (contrast). We don’t prove From is
+            real — we stop OTP / pay / open file / remote access.
           </p>
 
           <section className="mt-6">
-            <p className="text-sm font-semibold text-[var(--ink)]">
-              Try a known attack
-            </p>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-sm font-semibold text-[var(--ink)]">
+                Try a known attack
+              </p>
+              <p className="text-[11px] text-[var(--ink-muted)]">One tap</p>
+            </div>
             <div className="chip-rail mt-2.5 -mx-1 px-1">
               {EMAIL_DEMOS.map((d) => (
                 <button
@@ -213,9 +226,11 @@ export function SimpleCheck() {
                   type="button"
                   onClick={() => runDemo(d.id)}
                   disabled={busy}
-                  className={`min-h-12 w-[9.5rem] shrink-0 rounded-2xl border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] disabled:opacity-50 sm:w-[11rem] ${
+                  className={`min-h-12 w-[9.75rem] shrink-0 rounded-2xl border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] disabled:opacity-50 sm:w-[10.5rem] ${
                     demoId === d.id
-                      ? "border-[var(--brand)] bg-[var(--brand-soft)] shadow-sm"
+                      ? d.tone === "safe"
+                        ? "border-[var(--ok-line)] bg-[var(--ok-bg)] shadow-sm"
+                        : "border-[var(--brand)] bg-[var(--brand-soft)] shadow-sm"
                       : "border-[var(--line)] bg-[var(--card)] hover:border-[var(--brand)]/45"
                   }`}
                 >
@@ -252,7 +267,7 @@ export function SimpleCheck() {
                 setText(e.target.value);
                 setDemoId(null);
               }}
-              rows={8}
+              rows={7}
               disabled={busy}
               placeholder={`From: "Support" <alerts@brand-secure.xyz>\nSubject: Verify now\n\nDear customer...`}
               className="mt-3 w-full resize-y rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 py-3 font-mono text-[11px] leading-relaxed text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30 disabled:opacity-60 sm:text-sm"
@@ -311,15 +326,17 @@ export function SimpleCheck() {
 
             {!busy && !result ? (
               <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--card)] px-4 py-8 text-center text-sm leading-relaxed text-[var(--ink-muted)]">
-                Tap a demo or paste an email, then check.
+                Tap <strong className="text-[var(--ink)]">Bank OTP</strong> to
+                start the live demo — or paste your own email.
               </p>
             ) : null}
 
             {result ? (
-              <div className="space-y-4">
+              <div className="result-stack space-y-4">
+                {/* 1. HARD STOP or all-clear */}
                 {hasHardStop ? (
                   <div className="hard-stop-card" role="alert">
-                    <p className="hard-stop-kicker">HARD STOP</p>
+                    <p className="hard-stop-kicker">1 · HARD STOP</p>
                     <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
                       Do not act on this email
                     </p>
@@ -349,13 +366,27 @@ export function SimpleCheck() {
                           >
                             STOP
                           </span>
-                          <span className="min-w-0 break-words">{s}</span>
+                          <span className="min-w-0 break-words">
+                            {s.replace(/^DO NOT\s+/i, "")}
+                          </span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="all-clear-card" role="status">
+                    <p className="hard-stop-kicker">1 · No hard stop</p>
+                    <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
+                      No irreversible phishing lure found
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed opacity-90">
+                      Still don’t trust From alone — prefer official apps you
+                      open yourself.
+                    </p>
+                  </div>
+                )}
 
+                {/* 2. Verdict */}
                 <div
                   className={`verdict-card rounded-2xl border px-4 py-4 sm:px-5 ${verdictUi?.className}`}
                 >
@@ -368,7 +399,7 @@ export function SimpleCheck() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">
-                        {verdictUi?.stamp} · {result.riskScore}/100 ·{" "}
+                        2 · {verdictUi?.stamp} · {result.riskScore}/100 ·{" "}
                         {result.confidence}
                       </p>
                       <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
@@ -393,8 +424,12 @@ export function SimpleCheck() {
                   </div>
                 </div>
 
+                {/* 3. Why */}
                 <div className="simple-card p-4 sm:p-5">
-                  <p className="text-sm font-semibold text-[var(--ink)]">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+                    <span className="section-num" aria-hidden>
+                      3
+                    </span>
                     Why (multi-factor)
                   </p>
                   <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
@@ -418,7 +453,7 @@ export function SimpleCheck() {
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
-                              width: `${f.score}%`,
+                              width: `${Math.min(100, f.score)}%`,
                               background: barColor(f.score),
                             }}
                           />
@@ -428,9 +463,13 @@ export function SimpleCheck() {
                   </ul>
                 </div>
 
+                {/* 4. Learn */}
                 {result.learnHow?.length ? (
                   <div className="simple-card p-4 sm:p-5">
-                    <p className="text-sm font-semibold text-[var(--ink)]">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+                      <span className="section-num" aria-hidden>
+                        4
+                      </span>
                       How this scam works (learn once)
                     </p>
                     <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
@@ -443,8 +482,12 @@ export function SimpleCheck() {
                   </div>
                 ) : null}
 
+                {/* 5. Next */}
                 <div className="simple-card p-4 sm:p-5">
-                  <p className="text-sm font-semibold text-[var(--ink)]">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+                    <span className="section-num" aria-hidden>
+                      5
+                    </span>
                     What to do next
                   </p>
                   <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--ink)]">

@@ -1,4 +1,4 @@
-# FE HANDOVER — ONE PRODUCT ONLY
+# FE HANDOVER — Judge-ready UI (CURRENT)
 
 ## Pull
 ```bash
@@ -7,35 +7,28 @@ npm run dev
 ```
 Live: https://scamshield-ai-k6i1.onrender.com/
 
-## Lock (read twice)
-**ScamShield = email phishing prevention. Nothing else.**
+## Lock
+**Email phishing only.** One problem · one solution · one product.
 
-One problem · one solution · one product.  
-Not SMS. Not WhatsApp. Not “AI scam detector.” Not enterprise Proofpoint.
+## What shipped for judges
+`SimpleCheck.tsx` result hierarchy:
+1. **HARD STOP** (or all-clear for Normal email)
+2. Verdict + score + intents
+3. Why + factor bars
+4. Learn how
+5. What to do next
 
-**Pitch:**  
-> Email is #1 phishing vector. Paste the email. Multi-factor check. HARD STOP before OTP / pay / open file / remote access.
+Demos (5): Bank OTP · CEO gift virus · Temp-mail · CEO wire · **Normal email** (contrast)
 
-## API (don’t rewrite scoring)
-`POST /api/email-analyze` — `{ raw, officialDomain? }`  
-Engine: `lib/email/**` — **do not touch**
+Pitch hint is on-screen under the hero.
 
-## UI focus
-`components/SimpleCheck.tsx` only for consumer story.
+## Your polish (optional)
+- Mobile 375px overflow check
+- Don’t touch `lib/email/**` scoring
+- Commit `feat(fe): …`
 
-**Must be loud:** HARD STOP card after verdict.  
-**Must be quiet:** offensive vault (collapsed).  
-**Must say:** Treat as phishing / HARD STOP — never “we prove it’s a scam.”
-
-## FE polish priority
-1. Mobile 375px — no overflow  
-2. HARD STOP hierarchy  
-3. Demo rail (email attacks only)  
-4. Honest email-only copy in hero  
-5. Commit `feat(fe): …`
-
-## Mentor demo script
-1. Bank OTP → HARD STOP + theme  
-2. **CEO gift virus** → Gift/malware lure (your incident)  
+## Live demo script
+1. Bank OTP → HARD STOP  
+2. CEO gift virus → Gift/malware  
 3. Temp-mail → identity cheap  
-4. Learn-how section teaches the pattern
+4. Normal email → no hard stop (shows we’re not always red)
