@@ -1,15 +1,10 @@
-# FE HANDOVER — Tabs + live demo
+# FE — MVP freeze
 
-## Pull
 ```bash
 git pull
-npm run dev
 ```
 
-## UI
-- Tabs: **Check email** | **How it works**
-- Big **Try the demo** (fake bank OTP) on Check tab
-- More examples behind a toggle
-- How it works = 4 plain steps + same live demo button
+**Do not change scoring or product scope.**  
+Pitch uses: Try the demo → STOP → How it works.
 
-Don’t change `lib/email/**` scoring. Keep copy everyday-people friendly.
+If you polish UI only: mobile 375, keep plain copy. Commit `feat(fe): mvp polish`.
