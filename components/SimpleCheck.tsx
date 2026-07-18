@@ -19,14 +19,14 @@ const VERDICT_STYLE: Record<
   },
   suspicious: {
     stamp: "SUSPICIOUS",
-    label: "Be careful — something’s off",
+    label: "Be careful — verify before you act",
     className:
       "border-[var(--caution-line)] bg-[var(--caution-bg)] text-[var(--caution-ink)]",
     icon: "?",
   },
   safe: {
-    stamp: "SAFE",
-    label: "Looks safe-leaning",
+    stamp: "SAFE-LEANING",
+    label: "No strong phishing pattern found",
     className:
       "border-[var(--ok-line)] bg-[var(--ok-bg)] text-[var(--ok-ink)]",
     icon: "✓",
@@ -41,7 +41,7 @@ function barColor(score: number): string {
 
 export function SimpleCheck() {
   const [text, setText] = useState("");
-  const [demoId, setDemoId] = useState<EmailDemoId>("ceo_fraud");
+  const [demoId, setDemoId] = useState<EmailDemoId>("bank_otp");
   const [result, setResult] = useState<EmailAnalysisResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +54,9 @@ export function SimpleCheck() {
 
   const canCheck = text.trim().length > 0;
   const verdictUi = result ? VERDICT_STYLE[result.verdict] : null;
+  const hasHardStop =
+    !!result &&
+    (result.preventionLevel === "hard_stop" || result.hardStops.length > 0);
 
   const factorBars = useMemo(() => {
     if (!result) return [];
@@ -62,7 +65,7 @@ export function SimpleCheck() {
     return [
       {
         name: "Sender",
-        detail: "Who claims to write",
+        detail: "Claimed identity",
         score: t.sender.score,
         weight: `${w.sender}%`,
       },
@@ -120,6 +123,7 @@ export function SimpleCheck() {
   async function runEmailAnalyze(raw: string) {
     setBusy(true);
     setError(null);
+    setResult(null);
     try {
       const res = await fetch("/api/email-analyze", {
         method: "POST",
@@ -136,7 +140,9 @@ export function SimpleCheck() {
         resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     } catch {
-      setError("Something went wrong. Try again.");
+      setError(
+        "Couldn’t analyze this email. Check your connection and try again.",
+      );
     } finally {
       setBusy(false);
     }
@@ -206,7 +212,7 @@ export function SimpleCheck() {
           );
         }
       } catch {
-        setOcrNote("Upload failed.");
+        setOcrNote("Upload failed. Paste the email text instead.");
       } finally {
         setBusy(false);
       }
@@ -215,7 +221,7 @@ export function SimpleCheck() {
 
   return (
     <div className={dark ? "theme-soc" : "theme-consumer"}>
-      <div className="simple-shell min-h-screen">
+      <div className="simple-shell min-h-screen overflow-x-clip">
         <header className="simple-header sticky top-0 z-20">
           <div className="flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8 xl:px-10">
             <div className="flex min-w-0 items-center gap-2.5">
@@ -227,7 +233,7 @@ export function SimpleCheck() {
                   ScamShield
                 </p>
                 <p className="hidden text-[11px] text-[var(--ink-muted)] sm:block">
-                  Multi-factor email guard
+                  Email phishing guard
                 </p>
               </div>
             </div>
@@ -241,35 +247,36 @@ export function SimpleCheck() {
           </div>
         </header>
 
-        <main className="w-full px-4 pb-20 pt-5 sm:px-6 sm:pt-8 lg:px-8 xl:px-10">
+        <main className="w-full min-w-0 px-4 pb-20 pt-5 sm:px-6 sm:pt-8 lg:px-8 xl:px-10">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-dim)]">
-            Sender · content · links · files · headers
+            Email phishing · multi-factor
           </p>
-          <h1 className="mt-2 max-w-3xl text-[1.75rem] font-extrabold leading-[1.12] tracking-tight text-[var(--ink)] sm:text-4xl lg:text-5xl">
+          <h1 className="mt-2 max-w-3xl text-[1.65rem] font-extrabold leading-[1.12] tracking-tight text-[var(--ink)] sm:text-4xl lg:text-5xl">
             Stop email phishing before you click, pay, or share OTP
           </h1>
           <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-[var(--ink-muted)] sm:text-base">
-            Bypass one keyword and you can still fail{" "}
+            Bypass one keyword and you still fail{" "}
             <strong className="font-semibold text-[var(--ink)]">
               sender + link + attachment + intent
             </strong>
-            . Hard brake on irreversible actions — OTP / pay / malware / remote
-            access.
+            . We don’t prove the From is real — temp mail is cheap. We{" "}
+            <strong className="font-semibold text-[var(--ink)]">HARD STOP</strong>{" "}
+            OTP / pay / malware / remote access.
           </p>
 
-          {/* Demos */}
-          <section className="simple-card mt-6 p-4 sm:mt-8 sm:p-6">
+          {/* Demos — always chip-rail on phone */}
+          <section className="simple-card mt-6 min-w-0 p-4 sm:mt-8 sm:p-6">
             <p className="text-sm font-semibold text-[var(--ink)]">
-              Try a known attack
+              Try a known email attack
             </p>
             <p className="mt-1 text-sm text-[var(--ink-muted)]">
-              Tap a card to load · tap{" "}
+              Tap a card to load · then{" "}
               <span className="font-medium text-[var(--ink)]">
                 Check this example
-              </span>{" "}
-              to analyze.
+              </span>
+              .
             </p>
-            <div className="chip-rail mt-3.5 sm:grid sm:grid-cols-2 sm:gap-2.5 sm:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
+            <div className="chip-rail mt-3.5 -mx-1 px-1">
               {EMAIL_DEMOS.map((d) => (
                 <button
                   key={d.id}
@@ -277,7 +284,7 @@ export function SimpleCheck() {
                   onClick={() => previewDemo(d.id)}
                   onDoubleClick={() => checkDemo(d.id)}
                   disabled={busy}
-                  className={`min-h-14 w-[11.5rem] shrink-0 rounded-2xl border px-3.5 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] disabled:opacity-50 sm:w-auto ${
+                  className={`min-h-14 w-[10.75rem] shrink-0 rounded-2xl border px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] disabled:opacity-50 sm:w-[12.5rem] ${
                     demoId === d.id
                       ? "border-[var(--brand)] bg-[var(--brand-soft)] shadow-sm"
                       : "border-[var(--line)] bg-[var(--card)] hover:border-[var(--brand)]/45"
@@ -286,7 +293,7 @@ export function SimpleCheck() {
                   <span className="block text-sm font-semibold leading-snug text-[var(--ink)]">
                     {d.label}
                   </span>
-                  <span className="mt-1 line-clamp-2 block text-xs leading-snug text-[var(--ink-muted)]">
+                  <span className="mt-1 line-clamp-2 block text-[11px] leading-snug text-[var(--ink-muted)] sm:text-xs">
                     {d.line}
                   </span>
                 </button>
@@ -302,9 +309,9 @@ export function SimpleCheck() {
             </button>
           </section>
 
-          <div className="mt-5 grid gap-5 sm:mt-7 sm:gap-6 xl:grid-cols-2">
+          <div className="mt-5 grid min-w-0 gap-5 sm:mt-7 sm:gap-6 xl:grid-cols-2">
             {/* Step 1 */}
-            <section className="simple-card p-4 sm:p-6">
+            <section className="simple-card min-w-0 p-4 sm:p-6">
               <div className="flex items-start gap-3">
                 <span className="step-num" aria-hidden>
                   1
@@ -314,15 +321,15 @@ export function SimpleCheck() {
                     Paste the email
                   </h2>
                   <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">
-                    Headers + body is best. We never invent SPF if headers
-                    aren’t there.
+                    Headers + body is best. We never invent SPF/DKIM if headers
+                    aren’t in the paste.
                   </p>
                 </div>
               </div>
 
               <label className="mt-4 block">
                 <span className="text-xs font-medium text-[var(--ink-muted)]">
-                  Your real company domain{" "}
+                  Official company domain{" "}
                   <span className="font-normal">(optional)</span>
                 </span>
                 <input
@@ -332,24 +339,26 @@ export function SimpleCheck() {
                   className="mt-1.5 min-h-11 w-full rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30"
                 />
                 <span className="mt-1 block text-[11px] leading-snug text-[var(--ink-muted)]">
-                  Catches “CEO” writing from Gmail instead of @acme.com
+                  Helps flag “CEO” writing from Gmail instead of @acme.com
                 </span>
               </label>
 
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                rows={11}
+                rows={10}
+                disabled={busy}
                 placeholder={`From: "Support" <alerts@brand-secure.xyz>\nSubject: Verify now\n\nDear customer...`}
-                className="mt-3 w-full resize-y rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 py-3.5 font-mono text-[11px] leading-relaxed text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30 sm:text-sm"
+                className="mt-3 w-full resize-y rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 py-3.5 font-mono text-[11px] leading-relaxed text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30 disabled:opacity-60 sm:text-sm"
               />
 
-              <label className="mt-3 flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 text-sm text-[var(--ink-muted)] transition hover:border-[var(--brand)]/50 hover:text-[var(--ink)]">
+              <label className="mt-3 flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 text-center text-sm text-[var(--ink-muted)] transition hover:border-[var(--brand)]/50 hover:text-[var(--ink)]">
                 Upload .eml / .txt / screenshot
                 <input
                   type="file"
                   accept="image/*,.txt,.eml,.md"
                   className="sr-only"
+                  disabled={busy}
                   onChange={(e) => {
                     void onUpload(e.target.files?.[0] ?? null);
                     e.target.value = "";
@@ -366,18 +375,22 @@ export function SimpleCheck() {
                 disabled={!canCheck || busy}
                 className="btn-brand mt-4 min-h-12 w-full rounded-2xl px-5 text-base font-bold"
               >
-                {busy ? "Running multi-factor analysis…" : "Check email"}
+                {busy ? "Analyzing factors…" : "Check email"}
               </button>
+
               {error ? (
-                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                <div
+                  className="mt-3 rounded-2xl border border-[var(--danger-line)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-ink)]"
+                  role="alert"
+                >
                   {error}
-                </p>
+                </div>
               ) : null}
             </section>
 
             <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
               {/* Step 2 */}
-              <section ref={resultRef} className="simple-card p-4 sm:p-6">
+              <section ref={resultRef} className="simple-card min-w-0 p-4 sm:p-6">
                 <div className="flex items-start gap-3">
                   <span className="step-num" aria-hidden>
                     2
@@ -387,17 +400,70 @@ export function SimpleCheck() {
                       Verdict
                     </h2>
                     <p className="mt-1 text-sm text-[var(--ink-muted)]">
-                      SAFE · SUSPICIOUS · PHISHING — with factor scores.
+                      SAFE-leaning · SUSPICIOUS · PHISHING — then HARD STOP if
+                      needed.
                     </p>
                   </div>
                 </div>
 
-                {!result ? (
-                  <p className="mt-5 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 py-8 text-center text-sm text-[var(--ink-muted)]">
-                    Paste an email and tap Check — we’ll score each factor.
+                {busy && !result ? (
+                  <div className="mt-5 space-y-3" aria-busy="true" aria-live="polite">
+                    <p className="text-sm font-medium text-[var(--brand-dim)]">
+                      Scoring sender · content · links · attachments · headers…
+                    </p>
+                    <div className="h-24 animate-pulse rounded-2xl bg-[var(--input)]" />
+                    <div className="h-16 animate-pulse rounded-2xl bg-[var(--input)]" />
+                    <div className="h-20 animate-pulse rounded-2xl bg-[var(--input)]" />
+                  </div>
+                ) : null}
+
+                {!busy && !result ? (
+                  <p className="mt-5 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 py-8 text-center text-sm leading-relaxed text-[var(--ink-muted)]">
+                    Paste an email or pick a demo, then tap{" "}
+                    <span className="font-medium text-[var(--ink)]">
+                      Check email
+                    </span>
+                    .
                   </p>
-                ) : (
-                  <div className="mt-5 space-y-5">
+                ) : null}
+
+                {result ? (
+                  <div className="mt-5 space-y-4">
+                    {/* HARD STOP — primary visual when present */}
+                    {hasHardStop ? (
+                      <div className="hard-stop-card" role="alert">
+                        <p className="hard-stop-kicker">HARD STOP</p>
+                        <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
+                          Do not act on this email
+                        </p>
+                        <p className="mt-1.5 text-sm leading-relaxed opacity-90">
+                          Irreversible asks detected. Verify out-of-band before
+                          anything else.
+                        </p>
+                        <ul className="mt-4 space-y-2.5">
+                          {(result.hardStops.length
+                            ? result.hardStops
+                            : [
+                                "Do not share OTP, click links, pay, or open attachments until you verify another way.",
+                              ]
+                          ).map((s) => (
+                            <li
+                              key={s}
+                              className="flex gap-2.5 rounded-xl bg-black/5 px-3 py-2.5 text-sm font-semibold leading-snug dark:bg-black/20 sm:text-base"
+                            >
+                              <span
+                                className="mt-0.5 shrink-0 rounded bg-[var(--danger-ink)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+                                aria-hidden
+                              >
+                                DO NOT
+                              </span>
+                              <span className="min-w-0 break-words">{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
                     <div
                       className={`verdict-card rounded-2xl border px-4 py-4 sm:px-5 sm:py-5 ${verdictUi?.className}`}
                     >
@@ -410,13 +476,8 @@ export function SimpleCheck() {
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">
-                            {verdictUi?.stamp} · {result.riskScore}/100 ·{" "}
-                            {result.preventionLevel === "hard_stop"
-                              ? "HARD STOP"
-                              : result.preventionLevel === "caution"
-                                ? "CAUTION"
-                                : "OK"}{" "}
-                            · {result.confidence} confidence
+                            {verdictUi?.stamp} · score {result.riskScore}/100 ·{" "}
+                            {result.confidence} confidence
                           </p>
                           <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
                             {verdictUi?.label}
@@ -440,30 +501,6 @@ export function SimpleCheck() {
                       </div>
                     </div>
 
-                    {result.hardStops.length > 0 ? (
-                      <div
-                        className="rounded-2xl border-2 border-[var(--danger-line)] bg-[var(--danger-bg)] px-4 py-4 text-[var(--danger-ink)] sm:px-5"
-                        role="alert"
-                      >
-                        <p className="text-[11px] font-bold uppercase tracking-wider opacity-90">
-                          Safe next step — stop first
-                        </p>
-                        <ul className="mt-2 space-y-2 text-sm font-semibold leading-snug sm:text-base">
-                          {result.hardStops.map((s) => (
-                            <li key={s} className="flex gap-2.5">
-                              <span
-                                className="mt-0.5 shrink-0 rounded bg-[var(--danger-ink)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
-                                aria-hidden
-                              >
-                                Stop
-                              </span>
-                              <span>{s}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-
                     {result.dangerousIntents.length > 0 ? (
                       <div>
                         <p className="text-sm font-semibold text-[var(--ink)]">
@@ -484,11 +521,13 @@ export function SimpleCheck() {
 
                     <div>
                       <p className="text-sm font-semibold text-[var(--ink)]">
-                        Why (explained)
+                        Why (multi-factor)
                       </p>
                       <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
                         {result.reasons.slice(0, 6).map((r) => (
-                          <li key={r}>{r}</li>
+                          <li key={r} className="break-words">
+                            {r}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -497,6 +536,12 @@ export function SimpleCheck() {
                       <p className="text-sm font-semibold text-[var(--ink)]">
                         Factor scores
                       </p>
+                      {!result.technicalFindings.headers.provided ? (
+                        <p className="mt-1 text-xs text-[var(--ink-muted)]">
+                          Headers not in paste — SPF/DKIM/DMARC not scored as
+                          pass/fail.
+                        </p>
+                      ) : null}
                       <ul className="mt-3 space-y-3">
                         {factorBars.map((f) => (
                           <li key={f.name}>
@@ -527,21 +572,21 @@ export function SimpleCheck() {
                       </ul>
                     </div>
                   </div>
-                )}
+                ) : null}
               </section>
 
               {/* Step 3 */}
-              <section className="simple-card p-4 sm:p-6">
+              <section className="simple-card min-w-0 p-4 sm:p-6">
                 <div className="flex items-start gap-3">
                   <span className="step-num" aria-hidden>
                     3
                   </span>
                   <div>
                     <h2 className="text-lg font-bold leading-snug text-[var(--ink)]">
-                      What not to do
+                      Verify out-of-band
                     </h2>
                     <p className="mt-1 text-sm text-[var(--ink-muted)]">
-                      Plain stop/go advice after the check.
+                      Recommended next steps — not a guarantee.
                     </p>
                   </div>
                 </div>
@@ -559,7 +604,7 @@ export function SimpleCheck() {
                         >
                           ✓
                         </span>
-                        <span>{a}</span>
+                        <span className="min-w-0 break-words">{a}</span>
                       </li>
                     ))}
                   </ul>
