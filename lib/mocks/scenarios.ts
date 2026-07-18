@@ -1,11 +1,13 @@
 import type { EvidenceItem } from "@/lib/types";
 
-export type DemoScenarioId = "upi_kyc" | "job_offer" | "customs";
+export type DemoScenarioId = "upi_kyc" | "job_offer" | "customs" | "malware";
 
 export type DemoScenario = {
   id: DemoScenarioId;
   label: string;
   blurb: string;
+  /** Consumer-facing card line */
+  consumerLine: string;
   drops: Omit<EvidenceItem, "id" | "createdAt">[];
 };
 
@@ -14,6 +16,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     id: "upi_kyc",
     label: "Fake bank / KYC",
     blurb: "“Your account will freeze — click now”",
+    consumerLine: "Your account will freeze — click now",
     drops: [
       {
         type: "text",
@@ -36,6 +39,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     id: "job_offer",
     label: "Fake job offer",
     blurb: "“You’re hired — pay a small fee first”",
+    consumerLine: "You’re hired — pay a small fee first",
     drops: [
       {
         type: "text",
@@ -58,6 +62,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     id: "customs",
     label: "Fake customs",
     blurb: "“Your parcel is held — pay to release”",
+    consumerLine: "Your parcel is held — pay to release",
     drops: [
       {
         type: "text",
@@ -73,6 +78,24 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
         type: "text",
         content:
           "Pay clearance penalty ₹7,450 via bitcoin / UPI immediately or face FIR under smuggling clause. OTP sent — share now.",
+      },
+    ],
+  },
+  {
+    id: "malware",
+    label: "Malware / APK",
+    blurb: "“Install this app to secure your account”",
+    consumerLine: "Install this app to secure your account",
+    drops: [
+      {
+        type: "text",
+        content:
+          "URGENT security alert: Your device is infected. Download BankSecure.apk now to unlock UPI: https://secure-update-bank.xyz/BankSecure.apk",
+      },
+      {
+        type: "text",
+        content:
+          "WhatsApp “Bank Support”: Install AnyDesk and share screen so Officer can remove the virus. Send OTP when asked. Do not call the bank.",
       },
     ],
   },

@@ -1,4 +1,4 @@
-import { scoreEvidence } from "@/lib/heuristics";
+import { emptyScan, scoreEvidence } from "@/lib/heuristics";
 import { buildTimeline } from "@/lib/timeline";
 import type {
   EvidenceItem,
@@ -99,16 +99,8 @@ export async function analyzeEvidence(
 ): Promise<AnalyzeResult> {
   const t0 = Date.now();
   const texts = evidence.map((e) => e.content).filter(Boolean);
-  const scan =
-    texts.length === 0
-      ? {
-          riskLevel: "low" as const,
-          score: 0,
-          urls: [],
-          signals: ["No evidence provided"],
-          summary: "Add text or files before scanning.",
-        }
-      : scoreEvidence(texts);
+  const scan: ScanResult =
+    texts.length === 0 ? emptyScan() : scoreEvidence(texts);
 
   const timeline = buildTimeline(evidence);
   const key = process.env.EXA_API_KEY;

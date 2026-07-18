@@ -205,3 +205,38 @@ button:not(:disabled):active,
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* —— Consumer product shell (light by default) —— */
+.theme-consumer {
+  --brand: #5bb89a;
+  --brand-soft: #e8f7f1;
+  --brand-dim: #3d8f74;
+  --ink: #141414;
+  --ink-muted: #5c5c5c;
+  --line: #e4e4e7;
+  --card: #ffffff;
+  --input: #f4f4f5;
+  --shell-bg: #f4f4f5;
+}
+
+.theme-soc {
+  --brand: #34d399;
+  --brand-soft: rgba(52, 211, 153, 0.12);
+  --brand-dim: #34d399;
+  --ink: #fafafa;
+  --ink-muted: #a1a1aa;
+  --line: #27272a;
+  --card: #111113;
+  --input: #0c0c0e;
+  --shell-bg: #09090b;
+}
+
+.simple-shell {
+  background: var(--shell-bg);
+  color: var(--ink);
+}
+
+.tech-vault {
+  /* Nested SOC dashboard keeps dark zinc utilities from :root */
+  color: #fafafa;
+}

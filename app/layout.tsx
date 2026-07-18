@@ -19,9 +19,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield — Check suspicious messages",
+  title: "ScamShield — Check if a message is a scam",
   description:
-    "Paste an SMS, WhatsApp, or email. ScamShield explains if it looks like a scam and how they tried to trick you.",
+    "Paste a suspicious SMS, WhatsApp, or email. Get a plain-language answer — built for everyday people.",
 };
 
 const themeBootScript = `
