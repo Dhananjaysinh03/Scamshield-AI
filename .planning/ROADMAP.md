@@ -47,7 +47,7 @@
 
 | Phase | Status |
 |-------|--------|
-| 1 — Scaffold + Scan + Exa | Context gathering |
+| 1 — Scaffold + Scan + Exa | Planned (2 plans) — ready to execute |
 | 2 — Timeline | Pending |
 | 3 — Honeypot | Pending |
 | 4 — Polish + Ship | Pending |
