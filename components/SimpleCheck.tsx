@@ -20,8 +20,8 @@ const VERDICT_STYLE: Record<
   { stamp: string; label: string; className: string; icon: string }
 > = {
   phishing: {
-    stamp: "DANGEROUS",
-    label: "This looks like a scam email",
+    stamp: "WARNING",
+    label: "Treat this as a phishing email",
     className:
       "border-[var(--danger-line)] bg-[var(--danger-bg)] text-[var(--danger-ink)]",
     icon: "!",
@@ -35,7 +35,7 @@ const VERDICT_STYLE: Record<
   },
   safe: {
     stamp: "LOOKS OKAY",
-    label: "No strong scam warning found",
+    label: "No strong warning found",
     className:
       "border-[var(--ok-line)] bg-[var(--ok-bg)] text-[var(--ok-ink)]",
     icon: "✓",
@@ -224,13 +224,16 @@ export function SimpleCheck() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-xl min-w-0 px-4 pb-16 pt-5 sm:px-6 sm:pt-7">
+        <main className="mx-auto w-full max-w-xl min-w-0 overflow-x-clip px-4 pb-16 pt-5 sm:px-6 sm:pt-7">
           <h1 className="font-display text-[1.75rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
             Got a weird email?
           </h1>
           <p className="mt-2 text-base leading-relaxed text-[var(--ink-muted)]">
-            Paste it here. We’ll tell you in plain words if you should stop —
-            before OTP, money, files, or screen share.
+            Paste it here. We’ll tell you in plain words if you should{" "}
+            <strong className="font-semibold text-[var(--ink)]">
+              stop — don’t do what this asks
+            </strong>{" "}
+            — before OTP, money, files, or screen share.
           </p>
 
           <div className="ss-tabs mt-5" role="tablist" aria-label="ScamShield">
@@ -453,11 +456,6 @@ export function SimpleCheck() {
                         <p className="mt-1 text-2xl font-extrabold leading-snug">
                           Don’t do what this email asks
                         </p>
-                        {result.becTheme ? (
-                          <p className="mt-1 text-sm font-semibold opacity-90">
-                            Looks like: {result.becTheme}
-                          </p>
-                        ) : null}
                         <p className="mt-2 text-base leading-relaxed opacity-90">
                           Open your real bank / app yourself, or call a number
                           you already know — not a link from this email.
@@ -492,7 +490,7 @@ export function SimpleCheck() {
                       <div className="all-clear-card" role="status">
                         <p className="hard-stop-kicker">Looks safer</p>
                         <p className="mt-1 text-2xl font-extrabold leading-snug">
-                          We didn’t find a strong scam trap
+                          No strong trap found
                         </p>
                         <p className="mt-2 text-base leading-relaxed opacity-90">
                           Still be careful with unexpected links. When unsure,
