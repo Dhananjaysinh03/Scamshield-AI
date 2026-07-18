@@ -106,6 +106,16 @@ export async function POST(req: Request) {
       };
     }
 
+    const liveIntel = result.technicalFindings.urls.items
+      .flatMap((u) => u.findings)
+      .filter((f) => f.startsWith("Live intel:"));
+    if (liveIntel.length) {
+      result = {
+        ...result,
+        reasons: [...liveIntel.slice(0, 2), ...result.reasons].slice(0, 10),
+      };
+    }
+
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Email analysis failed" }, { status: 400 });

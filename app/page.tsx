@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LandingLiveCheck } from "@/components/LandingLiveCheck";
 
 const PARAMS = [
   {
@@ -72,11 +73,11 @@ export default function LandingPage() {
           </span>
         </Link>
         <nav className="lp-nav-links">
-          <a href="#how">How it works</a>
+          <a href="#live">Live check</a>
           <a href="#params">What we check</a>
           <a href="#know">Stay safe</a>
           <Link href="/check" className="lp-cta">
-            Check an email
+            Full product
           </Link>
         </nav>
       </header>
@@ -93,18 +94,22 @@ export default function LandingPage() {
           not to share OTP, pay money, open a file, or share your screen.
         </p>
         <div className="lp-hero-actions">
-          <Link href="/check" className="lp-btn-primary">
-            Try a live demo
-          </Link>
-          <a href="#params" className="lp-btn-ghost">
-            See what we check
+          <a href="#live" className="lp-btn-primary">
+            Run live check here
           </a>
+          <Link href="/check" className="lp-btn-ghost">
+            Open full product
+          </Link>
         </div>
         <p className="lp-fine">
-          We only read text. We don’t open virus files. Demo samples never
-          install anything on your phone.
+          Real engine on every check — sender parse, link scan, file names, SPF
+          headers when present. We never open virus files.
         </p>
       </section>
+
+      <div id="live">
+        <LandingLiveCheck />
+      </div>
 
       <section id="how" className="lp-section">
         <h2 className="font-display">How it works</h2>

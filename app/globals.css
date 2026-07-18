@@ -968,3 +968,357 @@ button:not(:disabled):active,
   color: var(--lp-muted);
   line-height: 1.55;
 }
+
+/* Evidence + history (real product surface) */
+.evidence-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--input);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.evidence-chip--theme {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--line));
+  background: var(--brand-soft);
+  color: var(--brand-dim);
+}
+
+.evidence-chip--scam {
+  border-color: var(--danger-line);
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.evidence-block h3 {
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 0.55rem;
+}
+
+.evidence-count {
+  display: inline-flex;
+  min-width: 1.2rem;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-dim);
+  font-size: 0.65rem;
+  padding: 0 0.35rem;
+  margin-left: 0.25rem;
+}
+
+.evidence-dl {
+  display: grid;
+  gap: 0.45rem;
+}
+
+@media (min-width: 640px) {
+  .evidence-dl {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.evidence-dl dt {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.evidence-dl dd {
+  margin-top: 0.1rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.evidence-findings {
+  margin-top: 0.55rem;
+  list-style: disc;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.evidence-item {
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: var(--input);
+  padding: 0.65rem 0.75rem;
+}
+
+.auth-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.4rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+}
+
+.auth-badge--pass {
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+}
+
+.auth-badge--fail {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.auth-badge--neutral,
+.auth-badge--missing {
+  background: var(--input);
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+}
+
+.btn-ghost-sm {
+  min-height: 2.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.btn-ghost-sm:hover {
+  border-color: var(--brand);
+  color: var(--brand-dim);
+}
+
+.history-row {
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--card);
+  padding: 0.85rem 1rem;
+  transition: border-color 0.15s ease;
+}
+
+.history-row:hover {
+  border-color: var(--brand);
+}
+
+.history-verdict {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+}
+
+.history-verdict--phishing {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.history-verdict--suspicious {
+  background: var(--caution-bg);
+  color: var(--caution-ink);
+}
+
+.history-verdict--safe {
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+}
+
+.ss-tab-count {
+  margin-left: 0.25rem;
+  display: inline-flex;
+  min-width: 1.1rem;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-dim);
+  font-size: 0.6rem;
+  padding: 0 0.3rem;
+}
+
+.lp-live {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 2.5rem;
+}
+
+.lp-live-head {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.lp-live-head h2 {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lp-live-card {
+  border: 1px solid var(--lp-line, #c8d5cf);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.25rem;
+  box-shadow: 0 12px 40px rgba(12, 31, 26, 0.06);
+}
+
+.lp-live-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.lp-live-hint,
+.lp-live-error {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--lp-muted, #5a6f68);
+  line-height: 1.5;
+}
+
+.lp-live-error {
+  color: #9f1239;
+}
+
+.lp-live-hint code {
+  font-size: 0.75rem;
+  background: #f0f7f4;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+}
+
+.lp-live-skeleton {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.lp-live-skeleton > div {
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: #e8f2ef;
+  animation: counter-pulse 1.2s ease-in-out infinite;
+}
+
+.lp-live-result {
+  margin-top: 1.15rem;
+  border-top: 1px solid #d0ddd7;
+  padding-top: 1.15rem;
+}
+
+.lp-live-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem;
+}
+
+.lp-live-verdict strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #9f1239;
+  letter-spacing: 0.04em;
+}
+
+.lp-live-verdict span {
+  font-size: 0.8rem;
+  color: #5a6f68;
+}
+
+.lp-live-facts {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+@media (min-width: 640px) {
+  .lp-live-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lp-live-facts dt {
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5a6f68;
+}
+
+.lp-live-facts dd {
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  font-family: var(--font-mono), monospace;
+  word-break: break-all;
+  color: #0c1f1a;
+}
+
+.lp-live-url {
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  border-radius: 0.85rem;
+  background: #fff1f2;
+  font-size: 0.8rem;
+}
+
+.lp-live-url span {
+  display: block;
+  font-weight: 750;
+  color: #9f1239;
+  margin-bottom: 0.25rem;
+}
+
+.lp-live-url code {
+  display: block;
+  word-break: break-all;
+  font-size: 0.72rem;
+}
+
+.lp-live-url em {
+  display: block;
+  margin-top: 0.35rem;
+  font-style: normal;
+  color: #5a6f68;
+}
+
+.lp-live-tags {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.lp-live-tags span {
+  border-radius: 999px;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #9f1239;
+}
+
+.lp-live-more {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f766e;
+  text-decoration: none;
+}
+
+.lp-live-more:hover {
+  text-decoration: underline;
+}

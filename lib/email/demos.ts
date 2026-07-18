@@ -10,6 +10,7 @@ export const FEATURED_DEMO_ID: EmailDemoId = "bank_otp";
 
 /**
  * Everyday phishing samples for normal people (demo only — never send as real attacks).
+ * Include Authentication-Results so header evidence is real in the UI.
  */
 export const EMAIL_DEMOS: {
   id: EmailDemoId;
@@ -25,7 +26,12 @@ export const EMAIL_DEMOS: {
     line: "Asks for your OTP to “unfreeze” account",
     tone: "attack",
     expect: "phishing",
-    raw: `From: "HDFC Bank Security" <alerts@hdfc-secure-login.xyz>
+    raw: `Return-Path: <bounce@hdfc-secure-login.xyz>
+Authentication-Results: mx.google.com;
+       spf=fail (google.com: domain of alerts@hdfc-secure-login.xyz does not designate sending IP) smtp.mailfrom=alerts@hdfc-secure-login.xyz;
+       dkim=fail header.d=hdfc-secure-login.xyz;
+       dmarc=fail (p=NONE) header.from=hdfc-secure-login.xyz
+From: "HDFC Bank Security" <alerts@hdfc-secure-login.xyz>
 To: you@email.com
 Subject: URGENT: Confirm OTP to stop account freeze
 
@@ -47,9 +53,11 @@ HDFC Fraud Desk`,
     line: "“You won a gift” — file is malware",
     tone: "attack",
     expect: "phishing",
-    raw: `From: "Rewards Desk" <claim@amazon-gift-secure.xyz>
+    raw: `Authentication-Results: mx.example.com; spf=fail; dkim=none; dmarc=fail
+From: "Rewards Desk" <claim@amazon-gift-secure.xyz>
 To: you@email.com
 Subject: You won a surprise gift — claim before midnight
+Content-Type: multipart/mixed
 
 Congratulations!
 
@@ -67,7 +75,8 @@ Download: https://amazon-gift-secure.xyz/Gift_Card.pdf.exe`,
     line: "Fake bank from a throwaway inbox",
     tone: "attack",
     expect: "phishing",
-    raw: `From: "SBI Secure" <sbi-alerts@smailpro.com>
+    raw: `Authentication-Results: mx.example.com; spf=softfail; dkim=fail; dmarc=fail
+From: "SBI Secure" <sbi-alerts@smailpro.com>
 To: you@email.com
 Reply-To: drop@guerrillamail.com
 Subject: Verify OTP to keep account active
@@ -87,7 +96,8 @@ SBI Security Team`,
     line: "Asks you to install AnyDesk / share screen",
     tone: "attack",
     expect: "phishing",
-    raw: `From: "Paytm Customer Care" <care@paytm-helpdesk.xyz>
+    raw: `Authentication-Results: mx.example.com; spf=fail; dkim=fail; dmarc=fail
+From: "Paytm Customer Care" <care@paytm-helpdesk.xyz>
 To: you@email.com
 Subject: Refund pending — install AnyDesk to receive money
 
@@ -107,7 +117,8 @@ Paytm Support`,
     line: "Just a friend — no scam tricks",
     tone: "safe",
     expect: "safe",
-    raw: `From: "Priya Sharma" <priya.shopper@gmail.com>
+    raw: `Authentication-Results: mx.google.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass header.d=gmail.com; dmarc=pass
+From: "Priya Sharma" <priya.shopper@gmail.com>
 To: friend@example.com
 Subject: Lunch tomorrow?
 

@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { EvidencePanel } from "@/components/EvidencePanel";
+import {
+  clearCheckHistory,
+  downloadAnalysisReport,
+  loadCheckHistory,
+  saveCheckToHistory,
+  type CheckHistoryItem,
+} from "@/lib/email/checkHistory";
 import {
   EMAIL_DEMOS,
   FEATURED_DEMO_ID,
@@ -14,7 +22,7 @@ import type {
 } from "@/lib/email/types";
 import type { OcrResponse } from "@/lib/types";
 
-type TabId = "check" | "how";
+type TabId = "check" | "how" | "history";
 
 const VERDICT_STYLE: Record<
   EmailVerdict,
@@ -93,7 +101,13 @@ export function SimpleCheck() {
   const [error, setError] = useState<string | null>(null);
   const [ocrNote, setOcrNote] = useState<string | null>(null);
   const [showMoreDemos, setShowMoreDemos] = useState(false);
+  const [history, setHistory] = useState<CheckHistoryItem[]>([]);
+  const [showEvidence, setShowEvidence] = useState(true);
   const resultRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setHistory(loadCheckHistory());
+  }, []);
 
   const featured =
     EMAIL_DEMOS.find((d) => d.id === FEATURED_DEMO_ID) || EMAIL_DEMOS[0];
@@ -135,6 +149,8 @@ export function SimpleCheck() {
       if (!res.ok) throw new Error("Analyze failed");
       const data = (await res.json()) as EmailAnalysisResult;
       setResult(data);
+      setShowEvidence(true);
+      setHistory(saveCheckToHistory(raw, data));
       requestAnimationFrame(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
@@ -195,7 +211,10 @@ export function SimpleCheck() {
         const data = (await res.json()) as OcrResponse;
         if (data.text) {
           setText(data.text);
-          setOcrNote("We read the screenshot — tap Check email.");
+          setOcrNote("We read the screenshot — running check…");
+          setBusy(false);
+          await runEmailAnalyze(data.text);
+          return;
         } else {
           setOcrNote(
             data.message ||
@@ -254,13 +273,107 @@ export function SimpleCheck() {
                 >
                   How it works
                 </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === "history"}
+                  className="ss-tab"
+                  onClick={() => setTab("history")}
+                >
+                  History
+                  {history.length > 0 ? (
+                    <span className="ss-tab-count">{history.length}</span>
+                  ) : null}
+                </button>
               </div>
             </div>
           </div>
         </header>
 
         <main className="ss-fit-main w-full min-w-0 px-3 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-4 lg:px-6 xl:px-8">
-          {tab === "how" ? (
+          {tab === "history" ? (
+            <section className="ss-pane mx-auto max-w-3xl space-y-3" role="tabpanel">
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <h1 className="font-display text-xl font-extrabold tracking-tight text-[var(--ink)] sm:text-2xl">
+                    Your check history
+                  </h1>
+                  <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                    Saved on this device — reopen any past analysis with full
+                    evidence.
+                  </p>
+                </div>
+                {history.length > 0 ? (
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-[var(--ink-muted)] underline"
+                    onClick={() => {
+                      clearCheckHistory();
+                      setHistory([]);
+                    }}
+                  >
+                    Clear history
+                  </button>
+                ) : null}
+              </div>
+              {history.length === 0 ? (
+                <div className="simple-card p-5 text-sm text-[var(--ink-muted)]">
+                  No checks yet. Run a demo or paste an email — results stay
+                  here.
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {history.map((h) => (
+                    <li key={h.id}>
+                      <button
+                        type="button"
+                        className="history-row w-full text-left"
+                        onClick={() => {
+                          setResult(h.result);
+                          setText(h.preview);
+                          setDemoId(null);
+                          setShowEvidence(true);
+                          setTab("check");
+                        }}
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`history-verdict history-verdict--${h.verdict}`}
+                          >
+                            {h.verdict}
+                          </span>
+                          <span className="text-xs font-semibold text-[var(--ink-muted)]">
+                            score {h.riskScore}
+                            {h.preventionLevel === "hard_stop"
+                              ? " · STOP"
+                              : ""}
+                          </span>
+                          <span className="ml-auto text-[11px] text-[var(--ink-muted)]">
+                            {new Date(h.at).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="mt-1 truncate text-sm font-medium text-[var(--ink)]">
+                          {h.fromEmail || "Unknown sender"}
+                        </p>
+                        <p className="mt-0.5 line-clamp-2 text-xs text-[var(--ink-muted)]">
+                          {h.preview}
+                        </p>
+                        {h.scamTypes.length > 0 ? (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {h.scamTypes.map((t) => (
+                              <span key={t} className="evidence-chip">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : tab === "how" ? (
             <section
               className="ss-pane mx-auto max-w-3xl space-y-3"
               role="tabpanel"
@@ -559,9 +672,46 @@ export function SimpleCheck() {
                               ))}
                             </div>
                           ) : null}
+                          <div className="mt-2.5 flex flex-wrap gap-1.5">
+                            <span className="evidence-chip">
+                              {result.confidence} confidence
+                            </span>
+                            {result.becTheme ? (
+                              <span className="evidence-chip evidence-chip--theme">
+                                {result.becTheme}
+                              </span>
+                            ) : null}
+                            {result.scamType.slice(0, 4).map((t) => (
+                              <span
+                                key={t}
+                                className="evidence-chip evidence-chip--scam"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="btn-ghost-sm"
+                        onClick={() => setShowEvidence((v) => !v)}
+                      >
+                        {showEvidence ? "Hide evidence" : "Show live evidence"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost-sm"
+                        onClick={() => downloadAnalysisReport(text, result)}
+                      >
+                        Download JSON report
+                      </button>
+                    </div>
+
+                    {showEvidence ? <EvidencePanel result={result} /> : null}
 
                     {result.senderReputation?.plainMessage &&
                     result.senderReputation.level !== "none" ? (
@@ -597,7 +747,7 @@ export function SimpleCheck() {
                           Why we say that
                         </p>
                         <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
-                          {result.reasons.slice(0, 4).map((r) => (
+                          {result.reasons.slice(0, 8).map((r) => (
                             <li key={r} className="break-words">
                               {r}
                             </li>
