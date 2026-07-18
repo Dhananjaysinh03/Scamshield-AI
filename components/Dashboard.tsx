@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AttackTimeline } from "@/components/AttackTimeline";
-import { DismantleTeaser } from "@/components/DismantleTeaser";
+import { DismantlePanel } from "@/components/DismantlePanel";
 import { EvidenceList } from "@/components/EvidenceList";
 import { IntakePanel } from "@/components/IntakePanel";
 import { ScanResults } from "@/components/ScanResults";
@@ -180,7 +180,12 @@ export function Dashboard() {
 
       <section className="flex flex-col gap-4">
         <ScanResults result={scan} />
-        <DismantleTeaser riskLevel={scan?.riskLevel ?? null} />
+        <DismantlePanel
+          scan={scan}
+          onConsoleLine={(line) =>
+            setLines((prev) => [...prev, line])
+          }
+        />
         <ThreatConsole lines={lines} />
       </section>
     </div>

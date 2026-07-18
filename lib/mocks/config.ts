@@ -1,8 +1,7 @@
 /**
  * Flip per-surface when backend confirms routes are live.
- * Timeline API exists — USE_MOCKS false hits POST /api/timeline (falls back on error).
- * Honeypot / audio still mock until FE-T3 / FE-T4 flip.
+ * Timeline + honeypot APIs exist — hit real routes; fall back to mocks on error.
  */
 export const USE_MOCKS = false;
-export const USE_HONEYPOT_MOCKS = true;
+export const USE_HONEYPOT_MOCKS = false;
 export const USE_AUDIO_MOCKS = true;
