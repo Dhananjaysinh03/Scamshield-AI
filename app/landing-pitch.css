@@ -238,3 +238,24 @@
 .lp-lead {
   max-width: 32rem !important;
 }
+
+.lp-engine-pill {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.lp-engine-pill--ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.lp-engine-pill--bad {
+  background: #fee2e2;
+  color: #991b1b;
+}

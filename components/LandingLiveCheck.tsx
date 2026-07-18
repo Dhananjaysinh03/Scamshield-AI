@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EMAIL_DEMOS, FEATURED_DEMO_ID } from "@/lib/email/demos";
 import type { EmailAnalysisResult } from "@/lib/email/types";
 
@@ -12,6 +12,21 @@ export function LandingLiveCheck() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<EmailAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [engineOnline, setEngineOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/email-analyze")
+      .then((r) => {
+        if (!cancelled) setEngineOnline(r.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setEngineOnline(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function run() {
     setBusy(true);
@@ -25,8 +40,10 @@ export function LandingLiveCheck() {
       if (!res.ok) throw new Error("fail");
       const data = (await res.json()) as EmailAnalysisResult;
       setResult(data);
+      setEngineOnline(true);
     } catch {
       setError("Check failed — open /check and try again.");
+      setEngineOnline(false);
     } finally {
       setBusy(false);
     }
@@ -40,7 +57,14 @@ export function LandingLiveCheck() {
       <div className="lp-live-card lp-live-card--big">
         <div className="lp-live-row">
           <div>
-            <p className="lp-kicker">Real engine</p>
+            <p className="lp-kicker">
+              Real engine
+              {engineOnline === true ? (
+                <span className="lp-engine-pill lp-engine-pill--ok"> Live</span>
+              ) : engineOnline === false ? (
+                <span className="lp-engine-pill lp-engine-pill--bad"> Down</span>
+              ) : null}
+            </p>
             <h2 className="font-display">One-tap phishing check</h2>
             <p className="lp-live-brief">
               Fake HDFC OTP → same API as the product.

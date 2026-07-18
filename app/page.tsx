@@ -89,7 +89,7 @@ export default function LandingPage() {
       </header>
 
       <section className="lp-hero">
-        <p className="lp-kicker">Hackathon pitch · 60s demo</p>
+        <p className="lp-kicker">Hackathon pitch · 90s demo</p>
         <h1 className="font-display">
           Weird email?
           <br />

@@ -468,6 +468,28 @@ export function GmailInbox() {
     flash("Trust cleared — choose again");
   }
 
+  function resetPitchDemo() {
+    localStorage.removeItem(TRUST_KEY);
+    setTrust({});
+    setMails(INBOX_MAILS.map((m) => ({ ...m })));
+    setArchived(new Set());
+    setSnoozed(new Set());
+    setChecked(new Set());
+    setAnalysisCache({});
+    setAnalysis(null);
+    setCatFilter("all");
+    setSearch("");
+    setNav("inbox");
+    setSelectedId(null);
+    setShowTrustModal(false);
+    setPanelOpen(true);
+    setDraft(null);
+    setSentMails([]);
+    setDraftMails([]);
+    setBlockedLink(null);
+    flash("Pitch reset — open HDFC for trust popup");
+  }
+
   // Keyboard shortcuts like Gmail
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -613,9 +635,18 @@ export function GmailInbox() {
           STOP · click the verify link (blocked) · <kbd>j</kbd>/<kbd>k</kbd> ·{" "}
           <kbd>e</kbd> · <kbd>c</kbd>
         </span>
-        <Link href="/" className="gm-pitch-home">
-          Home
-        </Link>
+        <div className="gm-pitch-actions">
+          <button
+            type="button"
+            className="gm-pitch-reset"
+            onClick={resetPitchDemo}
+          >
+            Reset pitch
+          </button>
+          <Link href="/" className="gm-pitch-home">
+            Home
+          </Link>
+        </div>
       </div>
 
       <header className="gm-top">
@@ -908,14 +939,8 @@ export function GmailInbox() {
                       className="gm-icon-btn"
                       aria-label="Refresh"
                       onClick={() => {
-                        setMails([...INBOX_MAILS]);
-                        setArchived(new Set());
-                        setSnoozed(new Set());
-                        setChecked(new Set());
-                        setAnalysisCache({});
-                        setCatFilter("all");
-                        setSearch("");
-                        flash("Inbox refreshed");
+                        resetPitchDemo();
+                        flash("Inbox refreshed · pitch ready");
                       }}
                     >
                       <Icon>

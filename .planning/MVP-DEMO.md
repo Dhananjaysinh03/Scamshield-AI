@@ -11,11 +11,13 @@ Also ships as **ScamShield in Mail** (Gmail-like inbox + side panel).
 ## Demo script (60–90 seconds)
 1. Open live site `/`  
 2. Tap **Open In Mail demo** → `/inbox`  
-3. Open pulsing **HDFC OTP** mail  
-4. Show **trust popup** + **ScamShield** panel (security level + threat checklist + STOP)  
-5. Optional contrast: open **Priya / Lunch** (genuine)  
-6. Optional: `/check` for paste + evidence + JSON  
-7. Say: **“We don’t prove From is real. We stop irreversible actions.”**
+3. (If rehearsed already) tap **Reset pitch** in the top bar  
+4. Open pulsing **HDFC OTP** mail  
+5. Show **trust popup** + **ScamShield** panel (security level + threat checklist + STOP)  
+6. Optional: click fake verify link → link HARD STOP  
+7. Optional contrast: open **Priya / Lunch** (genuine)  
+8. Optional: `/check` for paste + evidence + JSON  
+9. Say: **“We don’t prove From is real. We stop irreversible actions.”**
 
 ### Inbox interactions (if asked)
 - Select / archive / spam / delete / star / snooze  

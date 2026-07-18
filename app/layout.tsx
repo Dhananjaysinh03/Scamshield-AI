@@ -22,9 +22,40 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield — Stop before you click",
+  metadataBase: new URL("https://scamshield-ai-k6i1.onrender.com"),
+  title: {
+    default: "ScamShield — Stop before you click",
+    template: "%s · ScamShield",
+  },
   description:
-    "Check a suspicious email in plain language. Learn phishing traps, see what we score, and get a hard STOP before OTP, pay, files, or screen share.",
+    "Email phishing prevention for everyday people. Multi-factor check → HARD STOP before OTP, pay, files, or screen share. ScamShield in Mail demo included.",
+  applicationName: "ScamShield",
+  keywords: [
+    "phishing",
+    "email security",
+    "OTP scam",
+    "ScamShield",
+    "hackathon",
+  ],
+  authors: [{ name: "Neural Nexus" }],
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://scamshield-ai-k6i1.onrender.com",
+    siteName: "ScamShield",
+    title: "ScamShield — Stop before you click",
+    description:
+      "Paste or open mail → multi-factor check → HARD STOP before OTP, pay, files, or screen share.",
+  },
+  twitter: {
+    card: "summary",
+    title: "ScamShield — Stop before you click",
+    description:
+      "Email phishing prevention for everyday people. HARD STOP before irreversible actions.",
+  },
 };
 
 const themeBootScript = `

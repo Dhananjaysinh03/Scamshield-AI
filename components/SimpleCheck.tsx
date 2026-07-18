@@ -312,12 +312,6 @@ export function SimpleCheck() {
               </Link>
               <ThemeToggle />
               <Link
-                href="/inbox"
-                className="hidden text-xs font-semibold text-[var(--brand-dim)] transition hover:text-[var(--ink)] sm:inline"
-              >
-                In Mail
-              </Link>
-              <Link
                 href="/"
                 className="hidden text-xs font-semibold text-[var(--ink-muted)] transition hover:text-[var(--ink)] sm:inline"
               >

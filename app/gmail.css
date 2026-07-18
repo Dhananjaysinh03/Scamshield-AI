@@ -70,6 +70,30 @@
   text-decoration: underline;
 }
 
+.gm-pitch-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.gm-pitch-reset {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.gm-pitch-reset:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 .gm-row--phish-hint {
   animation: gm-pulse-row 1.8s ease-in-out 3;
 }
