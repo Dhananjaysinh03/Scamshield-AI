@@ -12,7 +12,8 @@ export type DangerousIntent =
   | "credential_harvest"
   | "wire_ceo"
   | "remote_access"
-  | "kyc_harvest";
+  | "kyc_harvest"
+  | "gift_lure";
 
 export type EmailAnalysisResult = {
   riskScore: number;
@@ -22,6 +23,10 @@ export type EmailAnalysisResult = {
   preventionLevel: PreventionLevel;
   /** Imperative "DO NOT" lines shown first to victims */
   hardStops: string[];
+  /** BEC / phishing theme label (Proofpoint-style, plain language) */
+  becTheme: string | null;
+  /** Short lessons so non-tech users recognize the pattern next time */
+  learnHow: string[];
   scamType: string[];
   summary: string;
   plainSummary: string;

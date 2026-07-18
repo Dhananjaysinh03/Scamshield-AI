@@ -34,8 +34,8 @@ Engine: `lib/email/**` — **do not touch**
 4. Honest email-only copy in hero  
 5. Commit `feat(fe): …`
 
-## Demo script with judges
-1. Bank OTP  
-2. Fake invoice / CEO gift malware  
-3. Temp-mail  
-4. Optional vault 10s
+## Mentor demo script
+1. Bank OTP → HARD STOP + theme  
+2. **CEO gift virus** → Gift/malware lure (your incident)  
+3. Temp-mail → identity cheap  
+4. Learn-how section teaches the pattern

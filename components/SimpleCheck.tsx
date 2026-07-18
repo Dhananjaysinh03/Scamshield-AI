@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Dashboard } from "@/components/Dashboard";
+import { useMemo, useRef, useState } from "react";
 import { EMAIL_DEMOS, type EmailDemoId } from "@/lib/email/demos";
 import type { EmailAnalysisResult, EmailVerdict } from "@/lib/email/types";
 import type { OcrResponse } from "@/lib/types";
@@ -33,6 +32,12 @@ const VERDICT_STYLE: Record<
   },
 };
 
+function barColor(score: number): string {
+  if (score >= 70) return "var(--danger-ink)";
+  if (score >= 40) return "var(--caution-ink)";
+  return "var(--brand)";
+}
+
 export function SimpleCheck() {
   const [text, setText] = useState("");
   const [demoId, setDemoId] = useState<EmailDemoId | null>("bank_otp");
@@ -41,7 +46,6 @@ export function SimpleCheck() {
   const [error, setError] = useState<string | null>(null);
   const [ocrNote, setOcrNote] = useState<string | null>(null);
   const [officialDomain, setOfficialDomain] = useState("");
-  const [showVault, setShowVault] = useState(false);
   const resultRef = useRef<HTMLElement>(null);
 
   const canCheck = text.trim().length > 0;
@@ -50,17 +54,38 @@ export function SimpleCheck() {
     !!result &&
     (result.preventionLevel === "hard_stop" || result.hardStops.length > 0);
 
-  async function runEmailAnalyze(raw: string) {
+  const factorBars = useMemo(() => {
+    if (!result) return [];
+    const t = result.technicalFindings;
+    return [
+      { name: "Sender", score: t.sender.score, w: result.weights.sender },
+      { name: "Content", score: t.content.score, w: result.weights.content },
+      { name: "Links", score: t.urls.score, w: result.weights.urls },
+      {
+        name: "Files",
+        score: t.attachments.score,
+        w: result.weights.attachments,
+      },
+      {
+        name: "Headers",
+        score: t.headers.score,
+        w: result.weights.headers,
+      },
+    ];
+  }, [result]);
+
+  async function runEmailAnalyze(raw: string, domainOverride?: string) {
     setBusy(true);
     setError(null);
     setResult(null);
     try {
+      const domain = (domainOverride ?? officialDomain).trim() || undefined;
       const res = await fetch("/api/email-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           raw,
-          officialDomain: officialDomain.trim() || undefined,
+          officialDomain: domain,
         }),
       });
       if (!res.ok) throw new Error("Analyze failed");
@@ -89,7 +114,8 @@ export function SimpleCheck() {
     setDemoId(demo.id);
     setText(demo.raw);
     setOcrNote(null);
-    void runEmailAnalyze(demo.raw);
+    if (demo.officialDomain) setOfficialDomain(demo.officialDomain);
+    void runEmailAnalyze(demo.raw, demo.officialDomain);
   }
 
   async function onUpload(file: File | null) {
@@ -162,25 +188,23 @@ export function SimpleCheck() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-xl min-w-0 overflow-x-clip px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
+        <main className="mx-auto w-full max-w-xl min-w-0 px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-dim)]">
             One problem · one product
           </p>
-          <h1 className="mt-1.5 text-[1.65rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
-            Paste the email. Multi-factor check. HARD STOP before you act.
+          <h1 className="mt-2 text-[1.65rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
+            Stop email phishing before you click, pay, or share OTP
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--ink-muted)] sm:text-[0.95rem]">
-            Email is #1 phishing vector. ScamShield does one thing: email
-            phishing prevention. Sender + link + attachment + intent — then a{" "}
+            Paste a suspicious email. We score sender + links + files + intent,
+            then{" "}
             <strong className="font-semibold text-[var(--ink)]">HARD STOP</strong>{" "}
-            before OTP / pay / open file / remote access. Treat as phishing when
-            signals stack; we don’t claim to prove the From is real.
+            irreversible actions — and teach you the pattern.
           </p>
 
-          {/* Demos — one tap runs check */}
-          <section className="mt-6 min-w-0">
+          <section className="mt-6">
             <p className="text-sm font-semibold text-[var(--ink)]">
-              Try a known email attack
+              Try a known attack
             </p>
             <div className="chip-rail mt-2.5 -mx-1 px-1">
               {EMAIL_DEMOS.map((d) => (
@@ -206,12 +230,13 @@ export function SimpleCheck() {
             </div>
           </section>
 
-          {/* Paste */}
           <section className="simple-card mt-5 p-4 sm:p-5">
             <label className="block">
               <span className="text-xs font-medium text-[var(--ink-muted)]">
-                Official domain{" "}
-                <span className="font-normal">(optional)</span>
+                Official company domain{" "}
+                <span className="font-normal">
+                  (optional — catches CEO@gmail)
+                </span>
               </span>
               <input
                 value={officialDomain}
@@ -269,7 +294,6 @@ export function SimpleCheck() {
             ) : null}
           </section>
 
-          {/* Result */}
           <section ref={resultRef} className="mt-5 min-w-0">
             {busy && !result ? (
               <div
@@ -293,7 +317,45 @@ export function SimpleCheck() {
 
             {result ? (
               <div className="space-y-4">
-                {/* Verdict first, then loud HARD STOP */}
+                {hasHardStop ? (
+                  <div className="hard-stop-card" role="alert">
+                    <p className="hard-stop-kicker">HARD STOP</p>
+                    <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
+                      Do not act on this email
+                    </p>
+                    {result.becTheme ? (
+                      <p className="mt-1 text-sm font-semibold opacity-90">
+                        Attack theme: {result.becTheme}
+                      </p>
+                    ) : null}
+                    <p className="mt-1.5 text-sm leading-relaxed opacity-90">
+                      Irreversible asks detected. Verify out-of-band before
+                      anything else.
+                    </p>
+                    <ul className="mt-4 space-y-2.5">
+                      {(result.hardStops.length
+                        ? result.hardStops
+                        : [
+                            "Do not share OTP, click links, pay, or open attachments until you verify another way.",
+                          ]
+                      ).map((s) => (
+                        <li
+                          key={s}
+                          className="flex gap-2.5 rounded-xl bg-black/5 px-3 py-2.5 text-sm font-semibold leading-snug sm:text-base"
+                        >
+                          <span
+                            className="mt-0.5 shrink-0 rounded bg-[var(--danger-ink)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+                            aria-hidden
+                          >
+                            STOP
+                          </span>
+                          <span className="min-w-0 break-words">{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 <div
                   className={`verdict-card rounded-2xl border px-4 py-4 sm:px-5 ${verdictUi?.className}`}
                 >
@@ -306,7 +368,8 @@ export function SimpleCheck() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">
-                        {verdictUi?.stamp} · {result.riskScore}/100
+                        {verdictUi?.stamp} · {result.riskScore}/100 ·{" "}
+                        {result.confidence}
                       </p>
                       <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
                         {verdictUi?.label}
@@ -330,34 +393,50 @@ export function SimpleCheck() {
                   </div>
                 </div>
 
-                {hasHardStop ? (
-                  <div className="hard-stop-card" role="alert">
-                    <p className="hard-stop-kicker">HARD STOP</p>
-                    <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
-                      Do not act on this email
-                    </p>
-                    <p className="mt-1.5 text-sm leading-relaxed opacity-90">
-                      Irreversible asks detected. Verify out-of-band before
-                      anything else.
-                    </p>
-                    <ul className="mt-4 space-y-2.5">
-                      {(result.hardStops.length
-                        ? result.hardStops
-                        : [
-                            "Do not share OTP, click links, pay, or open attachments until you verify another way.",
-                          ]
-                      ).map((s) => (
-                        <li
-                          key={s}
-                          className="flex gap-2.5 rounded-xl bg-black/5 px-3 py-2.5 text-sm font-semibold leading-snug sm:text-base"
-                        >
-                          <span
-                            className="mt-0.5 shrink-0 rounded bg-[var(--danger-ink)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
-                            aria-hidden
-                          >
-                            DO NOT
+                <div className="simple-card p-4 sm:p-5">
+                  <p className="text-sm font-semibold text-[var(--ink)]">
+                    Why (multi-factor)
+                  </p>
+                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
+                    {result.reasons.slice(0, 5).map((r) => (
+                      <li key={r} className="break-words">
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                  <ul className="mt-4 space-y-2">
+                    {factorBars.map((f) => (
+                      <li key={f.name}>
+                        <div className="flex justify-between text-[11px] text-[var(--ink-muted)]">
+                          <span>
+                            {f.name}
+                            {f.w ? ` · ${f.w}%` : ""}
                           </span>
-                          <span className="min-w-0 break-words">{s}</span>
+                          <span>{f.score}/100</span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--input)]">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${f.score}%`,
+                              background: barColor(f.score),
+                            }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {result.learnHow?.length ? (
+                  <div className="simple-card p-4 sm:p-5">
+                    <p className="text-sm font-semibold text-[var(--ink)]">
+                      How this scam works (learn once)
+                    </p>
+                    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
+                      {result.learnHow.map((t) => (
+                        <li key={t} className="break-words">
+                          {t}
                         </li>
                       ))}
                     </ul>
@@ -365,19 +444,8 @@ export function SimpleCheck() {
                 ) : null}
 
                 <div className="simple-card p-4 sm:p-5">
-                  <p className="text-sm font-semibold text-[var(--ink)]">Why</p>
-                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
-                    {result.reasons.slice(0, 4).map((r) => (
-                      <li key={r} className="break-words">
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="simple-card p-4 sm:p-5">
                   <p className="text-sm font-semibold text-[var(--ink)]">
-                    What to do
+                    What to do next
                   </p>
                   <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--ink)]">
                     {result.recommendedActions.map((a) => (
@@ -399,34 +467,6 @@ export function SimpleCheck() {
               </div>
             ) : null}
           </section>
-
-          {/* Quiet vault — collapsed by default */}
-          <div className="mt-10 border-t border-[var(--line)] pt-4">
-            <button
-              type="button"
-              onClick={() => setShowVault((v) => !v)}
-              aria-expanded={showVault}
-              className="min-h-10 text-xs font-medium text-[var(--ink-muted)] underline-offset-2 hover:text-[var(--ink)] hover:underline"
-            >
-              {showVault ? "Hide" : "Show"} offensive toolkit (optional)
-            </button>
-            <div
-              className={`tech-vault-wrap mt-3 ${showVault ? "is-open" : ""}`}
-            >
-              <div className="tech-vault-inner">
-                {showVault ? (
-                  <section className="tech-vault overflow-hidden rounded-2xl border border-zinc-800">
-                    <div className="border-b border-zinc-800 bg-zinc-950 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-emerald-400/80">
-                      Optional · Exa · timeline · honeypot
-                    </div>
-                    <div className="bg-zinc-950 px-3 py-5 sm:px-5">
-                      <Dashboard />
-                    </div>
-                  </section>
-                ) : null}
-              </div>
-            </div>
-          </div>
         </main>
       </div>
     </div>

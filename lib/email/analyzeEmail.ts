@@ -210,18 +210,26 @@ function analyzeSender(
   score: number;
   scamTypes: string[];
   disposable: boolean;
+  executiveImpersonation: boolean;
 } {
   const findings: string[] = [];
   const scamTypes: string[] = [];
   let score = 0;
   const { displayName, fromEmail, fromDomain, replyTo, returnPath } = parsed;
   let disposable = false;
+  let executiveImpersonation = false;
 
   if (!fromEmail && !fromDomain) {
     findings.push(
       "No clear From address — treat carefully (incomplete email paste).",
     );
-    return { findings, score: 15, scamTypes, disposable: false };
+    return {
+      findings,
+      score: 15,
+      scamTypes,
+      disposable: false,
+      executiveImpersonation: false,
+    };
   }
 
   // Temp-mail / disposable From — attacker tooling, never "trusted identity"
@@ -258,6 +266,7 @@ function analyzeSender(
       corpHints.some((h) => name.includes(h) || mailLocal.includes(h)) ||
       brandInText(name || "")
     ) {
+      executiveImpersonation = true;
       score += 60;
       findings.push(
         `Free email (${fromDomain}) used with a corporate / brand-looking name — classic executive or bank impersonation.`,
@@ -346,7 +355,13 @@ function analyzeSender(
     findings.push("Return-Path domain does not align with From domain.");
   }
 
-  return { findings, score: clamp(score), scamTypes, disposable };
+  return {
+    findings,
+    score: clamp(score),
+    scamTypes,
+    disposable,
+    executiveImpersonation,
+  };
 }
 
 function analyzeContent(
@@ -427,6 +442,10 @@ function analyzeContent(
         "imps",
         "scan qr",
         "qr code to pay",
+        "payroll redirect",
+        "change bank details",
+        "update bank account",
+        "vendor payment",
       ],
       intent: "payment",
       finding: "Pushes a payment, gift card, crypto, UPI, or QR pay action.",
@@ -436,12 +455,36 @@ function analyzeContent(
     },
     {
       keys: [
+        "surprise gift",
+        "gift for all",
+        "gift for everyone",
+        "gift for employees",
+        "claim your gift",
+        "claim yours",
+        "open the attached",
+        "open attached",
+        "open the attachment",
+        "open gift",
+        "employee gift",
+        "holiday gift",
+        "bonus gift",
+      ],
+      intent: "gift_lure",
+      finding:
+        "Uses a gift / claim-attachment lure — classic BEC malware delivery to employees.",
+      socialLabel: "Reward bait + authority",
+      pts: 40,
+      type: "Gift / Malware Lure",
+    },
+    {
+      keys: [
         "ceo",
         "urgent wire",
         "as discussed",
         "keep this confidential",
         "do not tell",
         "don't tell anyone",
+        "do not tell hr",
         "i need you to process",
         "before eod",
       ],
@@ -788,8 +831,10 @@ function hardStopsFor(intents: DangerousIntent[]): string[] {
       "DO NOT pay, wire money, buy gift cards, or scan a QR from this email.",
     );
   }
-  if (intents.includes("malware_open")) {
-    stops.push("DO NOT open, download, or run any attachment or linked file.");
+  if (intents.includes("malware_open") || intents.includes("gift_lure")) {
+    stops.push(
+      "DO NOT open gift/invoice attachments or download linked files — they can be viruses.",
+    );
   }
   if (intents.includes("click_verify") || intents.includes("kyc_harvest")) {
     stops.push(
@@ -807,8 +852,61 @@ function hardStopsFor(intents: DangerousIntent[]): string[] {
   stops.push(
     "DO NOT trust the From name alone — temp mail, free mail, and VPN don’t prove identity.",
   );
-  stops.push("If money or access is at risk: stop and call a trusted person.");
+  stops.push(
+    "SAFE NEXT STEP: open the official app/website yourself, or call a number you already know.",
+  );
   return [...new Set(stops)];
+}
+
+function becThemeFor(intents: DangerousIntent[], scamTypes: string[]): string | null {
+  if (intents.includes("gift_lure") || intents.includes("malware_open")) {
+    return "Gift / malware lure";
+  }
+  if (intents.includes("wire_ceo")) return "CEO / executive fraud (BEC)";
+  if (intents.includes("otp")) return "OTP / credential harvest";
+  if (intents.includes("remote_access")) return "Fake support / remote access";
+  if (intents.includes("kyc_harvest")) return "Fake KYC / ID harvest";
+  if (intents.includes("payment")) return "Payment / invoice fraud";
+  if (intents.includes("click_verify")) return "Fake login / verify link";
+  if (scamTypes.some((t) => /disposable/i.test(t))) return "Disposable sender phishing";
+  return null;
+}
+
+function learnHowFor(
+  intents: DangerousIntent[],
+  disposable: boolean,
+  executiveImpersonation: boolean,
+): string[] {
+  const tips: string[] = [
+    "Email phishing works by rushing you into one irreversible action — OTP, pay, open file, or screen share.",
+  ];
+  if (executiveImpersonation || intents.includes("wire_ceo") || intents.includes("gift_lure")) {
+    tips.push(
+      "A CEO name on Gmail is not your CEO. Real executives don’t email gifts as .exe or secret wires.",
+    );
+  }
+  if (intents.includes("otp") || intents.includes("credential_harvest")) {
+    tips.push("Banks never ask for OTP or passwords by email. If they did, hang up and open the official app.");
+  }
+  if (intents.includes("malware_open") || intents.includes("gift_lure")) {
+    tips.push(
+      "“Gift” and “invoice” files with double extensions (.pdf.exe) are a classic virus trick.",
+    );
+  }
+  if (disposable) {
+    tips.push(
+      "Temp mail / disposable From addresses are attacker tools — never proof someone is legit.",
+    );
+  }
+  if (intents.includes("remote_access")) {
+    tips.push(
+      "Anyone asking you to install AnyDesk or share screen to “help” is trying to take your account.",
+    );
+  }
+  tips.push(
+    "When unsure: don’t click. Verify with a known phone number or in person — never using contacts from the email.",
+  );
+  return [...new Set(tips)].slice(0, 5);
 }
 
 function actionsFor(
@@ -833,9 +931,9 @@ function actionsFor(
       "Confirm any payment request by calling a known number — never the one in the email.",
     );
   }
-  if (intents.includes("malware_open")) {
+  if (intents.includes("malware_open") || intents.includes("gift_lure")) {
     actions.add(
-      "If you opened a file: disconnect Wi‑Fi, run antivirus, and get help.",
+      "If you opened a file: disconnect Wi‑Fi, run antivirus, and get IT/help.",
     );
   }
   if (intents.includes("remote_access")) {
@@ -861,6 +959,7 @@ function applyPreventionFloor(
   attachmentScore: number,
   brandSpoofUrl: boolean,
   disposableSender: boolean,
+  executiveImpersonation: boolean,
 ): {
   riskScore: number;
   verdict: EmailVerdict;
@@ -878,6 +977,7 @@ function applyPreventionFloor(
       "remote_access",
       "kyc_harvest",
       "click_verify",
+      "gift_lure",
     ].includes(i),
   );
 
@@ -888,6 +988,30 @@ function applyPreventionFloor(
 
   // Absolute: malware delivery
   if (intents.includes("malware_open") || attachmentScore >= 70) {
+    nextScore = Math.max(nextScore, 92);
+    nextVerdict = "phishing";
+    nextConfidence = "High";
+    forced = true;
+  }
+
+  // CEO / exec on free mail + gift lure or attachment = classic employee malware BEC
+  if (
+    executiveImpersonation &&
+    (intents.includes("gift_lure") ||
+      intents.includes("malware_open") ||
+      attachmentScore >= 35)
+  ) {
+    nextScore = Math.max(nextScore, 93);
+    nextVerdict = "phishing";
+    nextConfidence = "High";
+    forced = true;
+  }
+
+  // Gift lure + any dangerous file/link
+  if (
+    intents.includes("gift_lure") &&
+    (attachmentScore >= 30 || urlScore >= 30 || intents.includes("malware_open"))
+  ) {
     nextScore = Math.max(nextScore, 90);
     nextVerdict = "phishing";
     nextConfidence = "High";
@@ -901,7 +1025,6 @@ function applyPreventionFloor(
     nextConfidence = "High";
     forced = true;
   } else if (disposableSender) {
-    // Even without clear intent: never call disposable identity "safe"
     nextScore = Math.max(nextScore, 55);
     if (nextVerdict === "safe") nextVerdict = "suspicious";
     nextConfidence = nextConfidence === "Low" ? "Medium" : nextConfidence;
@@ -920,8 +1043,11 @@ function applyPreventionFloor(
   }
 
   // CEO wire on free mail or mismatched domain
-  if (intents.includes("wire_ceo") && (senderScore >= 40 || disposableSender)) {
-    nextScore = Math.max(nextScore, 85);
+  if (
+    intents.includes("wire_ceo") &&
+    (senderScore >= 40 || disposableSender || executiveImpersonation)
+  ) {
+    nextScore = Math.max(nextScore, 88);
     nextVerdict = "phishing";
     nextConfidence = "High";
     forced = true;
@@ -1055,6 +1181,7 @@ export function analyzeEmailRaw(
     attachments.score,
     urls.brandSpoofUrl,
     sender.disposable,
+    sender.executiveImpersonation,
   );
   riskScore = floor.riskScore;
   verdict = floor.verdict;
@@ -1091,17 +1218,23 @@ export function analyzeEmailRaw(
 
   const hardStops =
     floor.preventionLevel === "none" ? [] : hardStopsFor(intents);
+  const becTheme = becThemeFor(intents, scamType);
+  const learnHow = learnHowFor(
+    intents,
+    sender.disposable,
+    sender.executiveImpersonation,
+  );
 
   const plainSummary =
     verdict === "phishing"
-      ? "PHISHING — stop now. Do not click, pay, share OTP, open files, or allow remote access."
+      ? `PHISHING${becTheme ? ` (${becTheme})` : ""} — stop now. Do not click, pay, share OTP, open files, or allow remote access.`
       : verdict === "suspicious"
         ? "Suspicious — do not act until you verify through an official channel you already trust."
         : "No strong multi-factor phishing signals — still stay careful with unexpected links.";
 
   const summary =
     verdict === "phishing"
-      ? `Phishing likely (score ${riskScore}/100). Prevention level: HARD STOP.`
+      ? `Phishing likely (score ${riskScore}/100). Prevention level: HARD STOP.${becTheme ? ` Theme: ${becTheme}.` : ""}`
       : verdict === "suspicious"
         ? `Suspicious (score ${riskScore}/100). Pause before any irreversible step.`
         : `Safe-leaning (score ${riskScore}/100). Low combined risk across factors.`;
@@ -1112,6 +1245,8 @@ export function analyzeEmailRaw(
     confidence,
     preventionLevel: floor.preventionLevel,
     hardStops,
+    becTheme,
+    learnHow,
     scamType,
     summary,
     plainSummary,
