@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { analyzeEmailRaw } from "@/lib/email/analyzeEmail";
 import type { EmailAnalysisResult } from "@/lib/email/types";
+import {
+  lookupSenderReputation,
+  recordPhishingSender,
+} from "@/lib/email/senderReputation";
 import Exa from "exa-js";
 
 export const runtime = "nodejs";
@@ -59,7 +63,7 @@ async function enrichUrlsWithExa(result: EmailAnalysisResult): Promise<EmailAnal
 }
 
 /**
- * Multi-factor email analyzer.
+ * Multi-factor email analyzer + sender reputation.
  * POST { raw: string, officialDomain?: string }
  */
 export async function POST(req: Request) {
@@ -81,6 +85,26 @@ export async function POST(req: Request) {
       officialDomain: body.officialDomain,
     });
     result = await enrichUrlsWithExa(result);
+
+    const fromEmail = result.technicalFindings.sender.email;
+    const fromDomain = result.technicalFindings.sender.domain;
+
+    if (result.verdict === "phishing" || result.preventionLevel === "hard_stop") {
+      recordPhishingSender(fromEmail, fromDomain);
+    }
+
+    const senderReputation = lookupSenderReputation(fromEmail, fromDomain);
+    result = { ...result, senderReputation };
+
+    if (
+      senderReputation.plainMessage &&
+      !result.reasons.some((r) => r.includes("often") || r.includes("flagged"))
+    ) {
+      result = {
+        ...result,
+        reasons: [senderReputation.plainMessage, ...result.reasons].slice(0, 8),
+      };
+    }
 
     return NextResponse.json(result);
   } catch {

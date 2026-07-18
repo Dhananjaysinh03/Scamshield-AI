@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const syne = Syne({
+const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["600", "700", "800"],
 });
 
-const dmSans = DM_Sans({
+const outfit = Outfit({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -19,9 +20,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield — Check a suspicious email",
+  title: "ScamShield — Stop before you click",
   description:
-    "Paste a weird email. Plain-language check before you share OTP, pay, open a file, or share your screen.",
+    "Check a suspicious email in plain language. Learn phishing traps, see what we score, and get a hard STOP before OTP, pay, files, or screen share.",
 };
 
 const themeBootScript = `
@@ -44,7 +45,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${syne.variable} ${dmSans.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${outfit.variable} ${jetbrains.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />

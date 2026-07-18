@@ -33,6 +33,14 @@ export type EmailAnalysisResult = {
   reasons: string[];
   recommendedActions: string[];
   dangerousIntents: DangerousIntent[];
+  /** How often this From / domain was flagged as phishing (in-memory MVP) */
+  senderReputation: {
+    email: string | null;
+    domain: string | null;
+    timesFlagged: number;
+    level: "none" | "seen" | "frequent" | "known_bad";
+    plainMessage: string | null;
+  };
   technicalFindings: {
     sender: {
       displayName: string | null;

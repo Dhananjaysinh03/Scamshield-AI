@@ -1255,6 +1255,13 @@ export function analyzeEmailRaw(
       : ["Insufficient strong signals across factors — staying cautious."],
     recommendedActions: actionsFor(verdict, intents),
     dangerousIntents: intents,
+    senderReputation: {
+      email: parsed.fromEmail,
+      domain: parsed.fromDomain,
+      timesFlagged: 0,
+      level: "none",
+      plainMessage: null,
+    },
     technicalFindings: {
       sender: {
         displayName: parsed.displayName,

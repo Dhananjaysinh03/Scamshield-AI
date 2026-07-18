@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import {
   EMAIL_DEMOS,
@@ -66,6 +67,10 @@ const HOW_STEPS = [
   {
     title: "We stop dangerous asks",
     body: "If it wants OTP, money, a file open, or screen share, we show a clear STOP first.",
+  },
+  {
+    title: "We remember repeat scam IDs",
+    body: "If the same From address keeps showing up in scam checks, we warn you that this email ID is often used for scams.",
   },
   {
     title: "You get plain next steps",
@@ -210,7 +215,7 @@ export function SimpleCheck() {
       <div className="ss-fit simple-shell w-full overflow-x-clip">
         <header className="simple-header z-20 w-full shrink-0">
           <div className="flex w-full items-center justify-between gap-3 px-3 py-2.5 sm:px-5 lg:px-6 xl:px-8">
-            <div className="flex min-w-0 items-center gap-2.5">
+            <Link href="/" className="flex min-w-0 items-center gap-2.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-sm font-bold text-white shadow-sm">
                 S
               </span>
@@ -222,26 +227,34 @@ export function SimpleCheck() {
                   Check if an email is trying to trick you
                 </p>
               </div>
-            </div>
-            <div className="ss-tabs shrink-0" role="tablist" aria-label="ScamShield">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === "check"}
-                className="ss-tab"
-                onClick={() => setTab("check")}
+            </Link>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href="/"
+                className="hidden text-xs font-semibold text-[var(--ink-muted)] transition hover:text-[var(--ink)] sm:inline"
               >
-                Check
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === "how"}
-                className="ss-tab"
-                onClick={() => setTab("how")}
-              >
-                How it works
-              </button>
+                Home
+              </Link>
+              <div className="ss-tabs" role="tablist" aria-label="ScamShield">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === "check"}
+                  className="ss-tab"
+                  onClick={() => setTab("check")}
+                >
+                  Check
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === "how"}
+                  className="ss-tab"
+                  onClick={() => setTab("how")}
+                >
+                  How it works
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -549,6 +562,34 @@ export function SimpleCheck() {
                         </div>
                       </div>
                     </div>
+
+                    {result.senderReputation?.plainMessage &&
+                    result.senderReputation.level !== "none" ? (
+                      <div
+                        className={`rep-card rep-card--${result.senderReputation.level}`}
+                        role="status"
+                      >
+                        <p className="hard-stop-kicker">Sender reputation</p>
+                        <p className="mt-1 text-base font-extrabold leading-snug sm:text-lg">
+                          {result.senderReputation.level === "known_bad" ||
+                          result.senderReputation.level === "frequent"
+                            ? "This email ID is often used for scams"
+                            : "We've seen this sender before"}
+                        </p>
+                        <p className="mt-1.5 text-sm leading-relaxed opacity-95">
+                          {result.senderReputation.plainMessage}
+                        </p>
+                        {result.senderReputation.timesFlagged > 1 ? (
+                          <p className="mt-2 text-xs font-semibold opacity-80">
+                            Flagged about {result.senderReputation.timesFlagged}
+                            × in ScamShield checks
+                            {result.senderReputation.email
+                              ? ` · ${result.senderReputation.email}`
+                              : ""}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="simple-card p-4">
