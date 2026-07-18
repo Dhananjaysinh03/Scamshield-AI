@@ -73,9 +73,9 @@ export default function LandingPage() {
           </span>
         </Link>
         <nav className="lp-nav-links">
+          <Link href="/inbox">In Mail demo</Link>
           <a href="#live">Live check</a>
           <a href="#params">What we check</a>
-          <a href="#know">Stay safe</a>
           <Link href="/check" className="lp-cta">
             Full product
           </Link>
@@ -94,16 +94,16 @@ export default function LandingPage() {
           not to share OTP, pay money, open a file, or share your screen.
         </p>
         <div className="lp-hero-actions">
-          <a href="#live" className="lp-btn-primary">
+          <Link href="/inbox" className="lp-btn-primary">
+            Open Gmail-style demo
+          </Link>
+          <a href="#live" className="lp-btn-ghost">
             Run live check here
           </a>
-          <Link href="/check" className="lp-btn-ghost">
-            Open full product
-          </Link>
         </div>
         <p className="lp-fine">
-          Real engine on every check — sender parse, link scan, file names, SPF
-          headers when present. We never open virus files.
+          New: ScamShield sits in mail like Gemini — trust-sender popup, side
+          panel STOP, real analyzer on every demo message.
         </p>
       </section>
 
@@ -171,14 +171,19 @@ export default function LandingPage() {
       </section>
 
       <section className="lp-finale">
-        <h2 className="font-display">Check an email in seconds</h2>
+        <h2 className="font-display">See it inside the inbox</h2>
         <p>
-          Paste a suspicious message — or tap the live fake-bank demo — and see
-          a clear STOP when it matters.
+          Open the Gmail-like demo — phishing, spam, and genuine mail — with
+          ScamShield as a side panel and “Do you trust this sender?” prompts.
         </p>
-        <Link href="/check" className="lp-btn-primary">
-          Open ScamShield check
-        </Link>
+        <div className="lp-hero-actions" style={{ justifyContent: "center" }}>
+          <Link href="/inbox" className="lp-btn-primary">
+            Launch In Mail demo
+          </Link>
+          <Link href="/check" className="lp-btn-ghost" style={{ color: "#ecfdf5", borderColor: "rgba(236,253,245,0.35)", background: "transparent" }}>
+            Paste checker
+          </Link>
+        </div>
       </section>
 
       <footer className="lp-foot">
