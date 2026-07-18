@@ -292,3 +292,32 @@ button:not(:disabled):active,
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
+
+.tech-vault {
+  color: #fafafa;
+}
+
+.tech-vault-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.2s ease;
+}
+
+.tech-vault-wrap.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.tech-vault-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-vault-wrap {
+    transition: none;
+  }
+}
