@@ -1,119 +1,107 @@
 export type EmailDemoId =
   | "bank_otp"
-  | "ceo_gift"
+  | "fake_prize"
   | "temp_mail"
-  | "ceo_fraud"
+  | "fake_support"
   | "safe_ok";
 
 /**
- * Judge demo rail (5): polished synthetic phishing pastes + safe contrast.
- * Demo-only samples — never send as real attacks.
+ * Everyday phishing samples for normal people (demo only — never send as real attacks).
  */
 export const EMAIL_DEMOS: {
   id: EmailDemoId;
   label: string;
   line: string;
   raw: string;
-  officialDomain?: string;
   tone?: "attack" | "safe";
   expect?: "phishing" | "safe";
 }[] = [
   {
     id: "bank_otp",
-    label: "Bank OTP",
-    line: "Fake HDFC + OTP + freeze threat",
+    label: "Fake bank OTP",
+    line: "Asks for your OTP to “unfreeze” account",
     tone: "attack",
     expect: "phishing",
     raw: `From: "HDFC Bank Security" <alerts@hdfc-secure-login.xyz>
-To: customer@email.com
-Reply-To: help@hdfc-secure-login.xyz
+To: you@email.com
 Subject: URGENT: Confirm OTP to stop account freeze
 
 Dear Customer,
 
-We detected an unusual login on your net banking.
+We detected an unusual login on your account.
 Your account will be frozen within 24 hours unless you verify immediately.
 
-Click here to verify your account:
+Click here to verify:
 https://hdfc-secure-login.xyz/otp
 
 Or reply with the OTP / one-time password you just received on SMS.
-Do not ignore this final notice.
 
-HDFC Fraud Desk
-Customer Care`,
+HDFC Fraud Desk`,
   },
   {
-    id: "ceo_gift",
-    label: "CEO gift virus",
-    line: "CEO@Gmail + gift .pdf.exe malware",
+    id: "fake_prize",
+    label: "Prize / gift file",
+    line: "“You won a gift” — file is malware",
     tone: "attack",
     expect: "phishing",
-    officialDomain: "acme.com",
-    raw: `From: "Rahul Sharma, CEO" <ceo.acme.corp@gmail.com>
-To: all@acme.com
-Subject: Surprise gift for all employees — claim yours before EOD
+    raw: `From: "Rewards Desk" <claim@amazon-gift-secure.xyz>
+To: you@email.com
+Subject: You won a surprise gift — claim before midnight
 
-Team,
+Congratulations!
 
-I arranged a surprise gift for everyone this week.
-Open the attached Gift_Card.pdf.exe and claim yours before EOD.
+You have been selected for a surprise gift card.
+Open Gift_Card.pdf.exe attached and claim yours before midnight.
+Act now — offer expires in 24 hours.
 
-Keep this confidential — do not tell HR or anyone on the team yet.
-I am in meetings; send confirmation when done.
-
-Rahul Sharma
-CEO, Acme
+Rewards Team
 Attachment: Gift_Card.pdf.exe
-Download: https://gift-claim-secure.xyz/Gift_Card.pdf.exe`,
+Download: https://amazon-gift-secure.xyz/Gift_Card.pdf.exe`,
   },
   {
     id: "temp_mail",
-    label: "Temp-mail",
-    line: "Smailpro From + guerrilla Reply-To",
+    label: "Temp-mail bank",
+    line: "Fake bank from a throwaway inbox",
     tone: "attack",
     expect: "phishing",
     raw: `From: "SBI Secure" <sbi-alerts@smailpro.com>
 To: you@email.com
 Reply-To: drop@guerrillamail.com
-Subject: Verify OTP to keep account active — act now
+Subject: Verify OTP to keep account active
 
 Dear Customer,
 
 Your account will be suspended within 24 hours.
-Complete secure login and reply with the OTP / verification code sent to your phone.
+Reply with the OTP / verification code sent to your phone, or click:
 
-Click here:
 https://sbi-secure-login.xyz/verify
 
 SBI Security Team`,
   },
   {
-    id: "ceo_fraud",
-    label: "CEO wire",
-    line: "Boss on Gmail asks secret wire",
+    id: "fake_support",
+    label: "Fake support call",
+    line: "Asks you to install AnyDesk / share screen",
     tone: "attack",
     expect: "phishing",
-    officialDomain: "acme.com",
-    raw: `From: "Rahul Sharma, CEO" <ceo.acme.corp@gmail.com>
-To: finance@acme.com
-Reply-To: rahul.wiredesk@proton.me
-Subject: URGENT — Wire transfer today (confidential)
+    raw: `From: "Paytm Customer Care" <care@paytm-helpdesk.xyz>
+To: you@email.com
+Subject: Refund pending — install AnyDesk to receive money
 
-Hi,
+Dear User,
 
-I need you to process a confidential wire transfer of $48,500 to our vendor before EOD.
-Do not tell anyone on the team — keep this confidential. I am in meetings.
+Your refund of ₹12,400 is pending.
+Please install AnyDesk and share your screen with our executive so we can credit it immediately.
 
-Send money / NEFT as discussed and confirm when done.
+Download: https://paytm-helpdesk.xyz/anydesk
+Reply with your AnyDesk ID.
 
-Rahul Sharma
-CEO`,
+Paytm Support`,
   },
   {
     id: "safe_ok",
     label: "Normal email",
-    line: "Friendly lunch — no phishing lure",
+    line: "Just a friend — no scam tricks",
     tone: "safe",
     expect: "safe",
     raw: `From: "Priya Sharma" <priya.shopper@gmail.com>
@@ -121,7 +109,7 @@ To: friend@example.com
 Subject: Lunch tomorrow?
 
 Hey — are we still on for lunch at 1pm near the office?
-No rush, just confirm when you can. Looking forward to catching up.
+No rush, just confirm when you can.
 
 Priya`,
   },

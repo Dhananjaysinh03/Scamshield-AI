@@ -1,17 +1,14 @@
-# PITCH — ScamShield (90 seconds)
+# PITCH — ScamShield (everyday people)
 
 ## Opener
-Email is the #1 phishing vector. ScamShield is the **consumer HARD STOP** for email phishing — one problem, one product.
+Weird email? Paste it. ScamShield tells you in plain words whether to **stop** before OTP, pay, open a file, or share screen.
 
-## Live UI path (point at screen)
-1. Tap **Bank OTP** → HARD STOP (don’t share OTP)  
-2. Tap **CEO gift virus** → CEO@Gmail + malware gift  
-3. Tap **Temp-mail** → disposable From still STOP  
-4. Tap **Normal email** → no hard stop (honest contrast)  
-5. Point at **Why** bars + **Learn once**
+## Demo
+1. Fake bank OTP → Stop  
+2. Prize / gift file → Don’t open  
+3. Temp-mail bank → Throwaway sender  
+4. Fake support → No AnyDesk  
+5. Normal email → Looks okay (contrast)
 
 ## Closer
-We don’t prove the sender is real. We stop OTP / pay / open file / remote access — and teach the pattern.
-
-## Not our claim
-SMS · WhatsApp · Proofpoint replacement · 100% virus SLA
+We help normal people — not a corporate gateway. One product: email scam check + clear next step.

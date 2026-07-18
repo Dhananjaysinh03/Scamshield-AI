@@ -3,9 +3,12 @@
 ## One problem · One solution · One product
 | | |
 |--|--|
-| **Problem** | Email phishing & BEC (OTP, wire, gift/malware, fake support) |
-| **Solution** | Paste email → multi-factor check → **HARD STOP** before irreversible action |
-| **Product** | **ScamShield** — email phishing prevention for non-tech users |
+| **Problem** | Everyday email scams (OTP, fake gifts, fake support, throwaway senders) |
+| **Solution** | Paste email → plain check → **stop** before OTP / pay / open file / screen share |
+| **Product** | **ScamShield** for normal people — not an enterprise CEO tool |
+
+Consumer UI demos: Fake bank OTP · Prize/gift file · Temp-mail bank · Fake support · Normal email.
+
 
 Not: SMS/WhatsApp · “detect all scams” · Proofpoint clone · trust-oracle for From addresses.
 

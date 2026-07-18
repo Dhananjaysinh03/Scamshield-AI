@@ -860,15 +860,15 @@ function hardStopsFor(intents: DangerousIntent[]): string[] {
 
 function becThemeFor(intents: DangerousIntent[], scamTypes: string[]): string | null {
   if (intents.includes("gift_lure") || intents.includes("malware_open")) {
-    return "Gift / malware lure";
+    return "Fake gift / dangerous file";
   }
-  if (intents.includes("wire_ceo")) return "CEO / executive fraud (BEC)";
-  if (intents.includes("otp")) return "OTP / credential harvest";
-  if (intents.includes("remote_access")) return "Fake support / remote access";
-  if (intents.includes("kyc_harvest")) return "Fake KYC / ID harvest";
-  if (intents.includes("payment")) return "Payment / invoice fraud";
-  if (intents.includes("click_verify")) return "Fake login / verify link";
-  if (scamTypes.some((t) => /disposable/i.test(t))) return "Disposable sender phishing";
+  if (intents.includes("wire_ceo")) return "Urgent money request";
+  if (intents.includes("otp")) return "Fake bank / OTP trap";
+  if (intents.includes("remote_access")) return "Fake support / screen share";
+  if (intents.includes("kyc_harvest")) return "Fake KYC / ID ask";
+  if (intents.includes("payment")) return "Payment / money ask";
+  if (intents.includes("click_verify")) return "Fake login link";
+  if (scamTypes.some((t) => /disposable/i.test(t))) return "Throwaway sender";
   return null;
 }
 
@@ -882,7 +882,7 @@ function learnHowFor(
   ];
   if (executiveImpersonation || intents.includes("wire_ceo") || intents.includes("gift_lure")) {
     tips.push(
-      "A CEO name on Gmail is not your CEO. Real executives don’t email gifts as .exe or secret wires.",
+      "A fancy From name is easy to fake. Real banks and shops won’t email you secret gifts as .exe files or ask for money by surprise.",
     );
   }
   if (intents.includes("otp") || intents.includes("credential_harvest")) {

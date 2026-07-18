@@ -1,4 +1,4 @@
-# FE HANDOVER — Polished demos (CURRENT)
+# FE HANDOVER — Everyday people UI
 
 ## Pull
 ```bash
@@ -6,16 +6,16 @@ git pull
 npm run dev
 ```
 
-## Demos (synthetic phishing pastes — one tap)
-| Chip | Expect |
-|------|--------|
-| Bank OTP | PHISHING · HARD STOP |
-| CEO gift virus | PHISHING · HARD STOP (set domain acme.com auto) |
-| Temp-mail | PHISHING · HARD STOP |
-| CEO wire | PHISHING · HARD STOP |
-| Normal email | SAFE-LEANING · no hard stop |
+## Product face
+For **normal people**, not enterprise/CEO pitch.
+Copy is plain: “Got a weird email?” / “Don’t do what this asks.”
 
-Don’t edit `lib/email/**` scoring. Optional: mobile polish only.
+## Demos
+Fake bank OTP · Prize/gift file · Temp-mail bank · Fake support · Normal email
 
-## Pitch
-Bank OTP → CEO gift → Temp-mail → Normal email contrast.
+## Do not
+- Bring back CEO demos in the consumer rail
+- Add jargon (BEC, SPF) to the hero
+- Touch `lib/email/**` scoring
+
+Optional polish: mobile 375 only. Commit `feat(fe): …`
