@@ -5,6 +5,9 @@ export type EmailDemoId =
   | "fake_support"
   | "safe_ok";
 
+/** One-tap featured demo on the Check tab */
+export const FEATURED_DEMO_ID: EmailDemoId = "bank_otp";
+
 /**
  * Everyday phishing samples for normal people (demo only — never send as real attacks).
  */

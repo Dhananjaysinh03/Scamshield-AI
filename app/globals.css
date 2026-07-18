@@ -267,6 +267,51 @@ button:not(:disabled):active,
   cursor: not-allowed;
 }
 
+.ss-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 1rem;
+  background: var(--input);
+  border: 1px solid var(--line);
+}
+
+.ss-tab {
+  min-height: 2.75rem;
+  border-radius: 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--ink-muted);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.ss-tab[aria-selected="true"] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(20, 20, 20, 0.06);
+}
+
+.demo-hero {
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--brand-soft) 85%, white),
+    var(--card) 55%
+  );
+  padding: 1.1rem 1.15rem;
+}
+
+.how-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  align-items: start;
+}
+
 .verdict-icon {
   background: color-mix(in srgb, currentColor 12%, transparent);
 }

@@ -1,4 +1,4 @@
-# FE HANDOVER — Everyday people UI
+# FE HANDOVER — Tabs + live demo
 
 ## Pull
 ```bash
@@ -6,16 +6,10 @@ git pull
 npm run dev
 ```
 
-## Product face
-For **normal people**, not enterprise/CEO pitch.
-Copy is plain: “Got a weird email?” / “Don’t do what this asks.”
+## UI
+- Tabs: **Check email** | **How it works**
+- Big **Try the demo** (fake bank OTP) on Check tab
+- More examples behind a toggle
+- How it works = 4 plain steps + same live demo button
 
-## Demos
-Fake bank OTP · Prize/gift file · Temp-mail bank · Fake support · Normal email
-
-## Do not
-- Bring back CEO demos in the consumer rail
-- Add jargon (BEC, SPF) to the hero
-- Touch `lib/email/**` scoring
-
-Optional polish: mobile 375 only. Commit `feat(fe): …`
+Don’t change `lib/email/**` scoring. Keep copy everyday-people friendly.
