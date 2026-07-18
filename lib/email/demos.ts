@@ -2,7 +2,8 @@ export type EmailDemoId =
   | "ceo_fraud"
   | "invoice_malware"
   | "bank_otp"
-  | "remote_access";
+  | "remote_access"
+  | "temp_mail";
 
 export const EMAIL_DEMOS: {
   id: EmailDemoId;
@@ -75,5 +76,20 @@ Download: https://paytm-helpdesk.xyz/anydesk
 Reply with your AnyDesk ID.
 
 Paytm Support`,
+  },
+  {
+    id: "temp_mail",
+    label: "Temp-mail sender",
+    line: "Smailpro-class From + OTP ask — identity is throwaway",
+    raw: `From: "SBI Secure" <sbi-alerts@smailpro.com>
+To: you@email.com
+Reply-To: drop@guerrillamail.com
+Subject: Verify OTP to keep account active
+
+Dear Customer,
+
+Your account will be suspended. Reply with the OTP sent to your phone or click https://sbi-secure-login.xyz/verify
+
+SBI Security Team`,
   },
 ];

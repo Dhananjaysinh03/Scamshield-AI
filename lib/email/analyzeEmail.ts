@@ -25,6 +25,56 @@ const FREE_MAIL = new Set([
   "zoho.com",
 ]);
 
+/**
+ * Disposable / temp-mail infrastructure.
+ * We do NOT claim to block all of them forever — we treat known disposable
+ * From domains as untrusted sender identity (attacker-side tooling).
+ */
+const DISPOSABLE_MAIL = new Set([
+  "smailpro.com",
+  "tempmail.com",
+  "temp-mail.org",
+  "temp-mail.io",
+  "guerrillamail.com",
+  "guerrillamail.org",
+  "guerrillamail.net",
+  "sharklasers.com",
+  "grr.la",
+  "guerrillamailblock.com",
+  "mailinator.com",
+  "maildrop.cc",
+  "yopmail.com",
+  "yopmail.fr",
+  "trashmail.com",
+  "throwaway.email",
+  "10minutemail.com",
+  "10minemail.com",
+  "minuteinbox.com",
+  "getnada.com",
+  "emailondeck.com",
+  "fakeinbox.com",
+  "dispostable.com",
+  "mailnesia.com",
+  "tempr.email",
+  "tmpmail.org",
+  "tmpmail.net",
+  "moakt.com",
+  "inboxkitten.com",
+  "burnermail.io",
+  "mailnull.com",
+  "spamgourmet.com",
+  "mailcatch.com",
+  "tempail.com",
+  "tempm.com",
+  "discard.email",
+  "mailtemp.net",
+  "crazymailing.com",
+  "emailfake.com",
+]);
+
+const DISPOSABLE_HINT =
+  /temp.?mail|smailpro|guerrilla|mailinator|yopmail|throwaway|10minute|disposable|burner.?mail|trash.?mail|fake.?inbox|getnada|maildrop|tmpmail|tempr\.email/i;
+
 const SUSPICIOUS_TLDS = [
   ".tk",
   ".ml",
@@ -140,23 +190,51 @@ function isOfficialHost(brand: string, host: string): boolean {
   );
 }
 
+function isDisposableDomain(domain: string | null): boolean {
+  if (!domain) return false;
+  const d = domain.toLowerCase();
+  if (DISPOSABLE_MAIL.has(d)) return true;
+  if (DISPOSABLE_HINT.test(d)) return true;
+  // nested: foo.mailinator.com
+  for (const root of DISPOSABLE_MAIL) {
+    if (d.endsWith(`.${root}`)) return true;
+  }
+  return false;
+}
+
 function analyzeSender(
   parsed: ReturnType<typeof parseEmail>,
   officialDomain?: string,
-): { findings: string[]; score: number; scamTypes: string[] } {
+): {
+  findings: string[];
+  score: number;
+  scamTypes: string[];
+  disposable: boolean;
+} {
   const findings: string[] = [];
   const scamTypes: string[] = [];
   let score = 0;
   const { displayName, fromEmail, fromDomain, replyTo, returnPath } = parsed;
+  let disposable = false;
 
   if (!fromEmail && !fromDomain) {
     findings.push(
       "No clear From address — treat carefully (incomplete email paste).",
     );
-    return { findings, score: 15, scamTypes };
+    return { findings, score: 15, scamTypes, disposable: false };
   }
 
-  if (fromDomain && FREE_MAIL.has(fromDomain)) {
+  // Temp-mail / disposable From — attacker tooling, never "trusted identity"
+  if (isDisposableDomain(fromDomain)) {
+    disposable = true;
+    score += 70;
+    findings.push(
+      `Sender domain (${fromDomain}) looks like disposable / temp mail (e.g. Smailpro-class). Treat identity as untrusted — this is attacker infrastructure, not proof the message is safe.`,
+    );
+    scamTypes.push("Disposable Sender");
+  }
+
+  if (fromDomain && FREE_MAIL.has(fromDomain) && !disposable) {
     const name = (displayName || "").toLowerCase();
     const mailLocal = (fromEmail || "").split("@")[0] || "";
     const corpHints = [
@@ -188,7 +266,7 @@ function analyzeSender(
     } else {
       score += 10;
       findings.push(
-        `Sender uses a free mailbox (${fromDomain}). Not proof of fraud alone.`,
+        `Sender uses a free mailbox (${fromDomain}). Not proof of fraud alone — and not proof of trust either.`,
       );
     }
   }
@@ -253,6 +331,14 @@ function analyzeSender(
       );
       scamTypes.push("Reply-To Mismatch");
     }
+    if (isDisposableDomain(replyDom || null)) {
+      disposable = true;
+      score += 55;
+      findings.push(
+        `Reply-To uses disposable / temp mail (${replyDom}) — replies go to throwaway attacker inbox.`,
+      );
+      scamTypes.push("Disposable Reply-To");
+    }
   }
 
   if (returnPath && fromDomain && !returnPath.includes(fromDomain)) {
@@ -260,7 +346,7 @@ function analyzeSender(
     findings.push("Return-Path domain does not align with From domain.");
   }
 
-  return { findings, score: clamp(score), scamTypes };
+  return { findings, score: clamp(score), scamTypes, disposable };
 }
 
 function analyzeContent(
@@ -718,6 +804,9 @@ function hardStopsFor(intents: DangerousIntent[]): string[] {
   if (stops.length === 0) {
     stops.push("DO NOT click unexpected links until you verify the sender.");
   }
+  stops.push(
+    "DO NOT trust the From name alone — temp mail, free mail, and VPN don’t prove identity.",
+  );
   stops.push("If money or access is at risk: stop and call a trusted person.");
   return [...new Set(stops)];
 }
@@ -771,6 +860,7 @@ function applyPreventionFloor(
   urlScore: number,
   attachmentScore: number,
   brandSpoofUrl: boolean,
+  disposableSender: boolean,
 ): {
   riskScore: number;
   verdict: EmailVerdict;
@@ -787,6 +877,7 @@ function applyPreventionFloor(
       "wire_ceo",
       "remote_access",
       "kyc_harvest",
+      "click_verify",
     ].includes(i),
   );
 
@@ -803,10 +894,24 @@ function applyPreventionFloor(
     forced = true;
   }
 
+  // Disposable/temp From + any ask to act → phishing (identity is throwaway)
+  if (disposableSender && (irreversible || brandSpoofUrl || urlScore >= 25)) {
+    nextScore = Math.max(nextScore, 90);
+    nextVerdict = "phishing";
+    nextConfidence = "High";
+    forced = true;
+  } else if (disposableSender) {
+    // Even without clear intent: never call disposable identity "safe"
+    nextScore = Math.max(nextScore, 55);
+    if (nextVerdict === "safe") nextVerdict = "suspicious";
+    nextConfidence = nextConfidence === "Low" ? "Medium" : nextConfidence;
+    forced = true;
+  }
+
   // OTP / credentials + spoofed brand link or bad sender
   if (
     (intents.includes("otp") || intents.includes("credential_harvest")) &&
-    (brandSpoofUrl || urlScore >= 40 || senderScore >= 45)
+    (brandSpoofUrl || urlScore >= 40 || senderScore >= 45 || disposableSender)
   ) {
     nextScore = Math.max(nextScore, 88);
     nextVerdict = "phishing";
@@ -815,7 +920,7 @@ function applyPreventionFloor(
   }
 
   // CEO wire on free mail or mismatched domain
-  if (intents.includes("wire_ceo") && senderScore >= 40) {
+  if (intents.includes("wire_ceo") && (senderScore >= 40 || disposableSender)) {
     nextScore = Math.max(nextScore, 85);
     nextVerdict = "phishing";
     nextConfidence = "High";
@@ -831,7 +936,10 @@ function applyPreventionFloor(
   }
 
   // KYC harvest + urgency/link
-  if (intents.includes("kyc_harvest") && (urlScore >= 30 || brandSpoofUrl)) {
+  if (
+    intents.includes("kyc_harvest") &&
+    (urlScore >= 30 || brandSpoofUrl || disposableSender)
+  ) {
     nextScore = Math.max(nextScore, 82);
     nextVerdict = "phishing";
     nextConfidence = nextConfidence === "Low" ? "Medium" : nextConfidence;
@@ -839,7 +947,7 @@ function applyPreventionFloor(
   }
 
   // Payment + suspicious URL
-  if (intents.includes("payment") && urlScore >= 35) {
+  if (intents.includes("payment") && (urlScore >= 35 || disposableSender)) {
     nextScore = Math.max(nextScore, 78);
     if (nextVerdict === "safe") nextVerdict = "suspicious";
     if (nextScore >= 70) nextVerdict = "phishing";
@@ -849,8 +957,8 @@ function applyPreventionFloor(
   let preventionLevel: PreventionLevel = "none";
   if (nextVerdict === "phishing" || (irreversible && nextVerdict !== "safe")) {
     preventionLevel = "hard_stop";
-  } else if (nextVerdict === "suspicious" || irreversible) {
-    preventionLevel = "caution";
+  } else if (nextVerdict === "suspicious" || irreversible || disposableSender) {
+    preventionLevel = disposableSender ? "hard_stop" : "caution";
   }
 
   if (irreversible && nextVerdict === "safe") {
@@ -946,6 +1054,7 @@ export function analyzeEmailRaw(
     urls.score,
     attachments.score,
     urls.brandSpoofUrl,
+    sender.disposable,
   );
   riskScore = floor.riskScore;
   verdict = floor.verdict;

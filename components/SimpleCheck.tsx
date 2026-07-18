@@ -269,7 +269,7 @@ export function SimpleCheck() {
               </span>{" "}
               to analyze.
             </p>
-            <div className="chip-rail mt-3.5 sm:grid sm:grid-cols-2 sm:gap-2.5 sm:overflow-visible lg:grid-cols-4">
+            <div className="chip-rail mt-3.5 sm:grid sm:grid-cols-2 sm:gap-2.5 sm:overflow-visible lg:grid-cols-3 xl:grid-cols-5">
               {EMAIL_DEMOS.map((d) => (
                 <button
                   key={d.id}
