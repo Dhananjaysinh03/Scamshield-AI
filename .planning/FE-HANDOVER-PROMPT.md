@@ -1,4 +1,4 @@
-# FE HANDOVER — Email phishing guard (CURRENT)
+# FE HANDOVER — ONE PRODUCT ONLY
 
 ## Pull
 ```bash
@@ -7,51 +7,35 @@ npm run dev
 ```
 Live: https://scamshield-ai-k6i1.onrender.com/
 
-## Domain (LOCKED — do not widen)
-**Email phishing only.** Not SMS / WhatsApp / “detect all scams.”
+## Lock (read twice)
+**ScamShield = email phishing prevention. Nothing else.**
 
-**Pitch line:**  
-> Bypass one keyword and you still fail sender + link + attachment + intent. We don’t prove the From is real (temp mail/VPN are cheap). We HARD STOP OTP / pay / malware / remote access.
+One problem · one solution · one product.  
+Not SMS. Not WhatsApp. Not “AI scam detector.” Not enterprise Proofpoint.
 
-## What BE already shipped (don’t rewrite)
-| Piece | Path |
-|--------|------|
-| Core API | `POST /api/email-analyze` `{ raw, officialDomain? }` |
-| Engine | `lib/email/**` — **do not change scoring** |
-| Consumer UI shell | `components/SimpleCheck.tsx` |
-| Demos (5) | CEO · Fake invoice · Bank OTP · Fake support · **Temp-mail** |
-| Result fields | `verdict`, `riskScore`, `preventionLevel`, `hardStops[]`, `reasons`, `dangerousIntents`, `technicalFindings`, factor `weights` |
+**Pitch:**  
+> Email is #1 phishing vector. Paste the email. Multi-factor check. HARD STOP before OTP / pay / open file / remote access.
 
-## UI already there
-- Paste email / `.eml` / screenshot OCR
-- Optional official domain (`acme.com`)
-- Factor score bars
-- **HARD STOP** card (`hardStops`)
-- Intent chips + scam-type chips
-- Technical JSON + optional Exa/timeline/honeypot vault
+## API (don’t rewrite scoring)
+`POST /api/email-analyze` — `{ raw, officialDomain? }`  
+Engine: `lib/email/**` — **do not touch**
 
-## Your FE modifications (priority order)
-1. **Mobile 375px** — demos chip-rail, Stop card, verdict, no horizontal overflow
-2. **HARD STOP card** — biggest visual after verdict (red/danger tokens). Victim must see “DO NOT …” first
-3. **Demo cards** — 5 demos readable on mobile (scroll rail OK); labels stay email-attack names
-4. **Copy stays honest** — never “we know this is a scam.” Prefer “Treat as phishing” / “HARD STOP” / “verify out-of-band”
-5. **Light consumer theme** — match mock; vault stays collapsed behind “offensive toolkit”
-6. **Empty / loading / error** — clear states for Check email
+## UI focus
+`components/SimpleCheck.tsx` only for consumer story.
 
-## Do NOT
-- Call Exa / honeypot from the browser
-- Widen product to SMS/WhatsApp in hero
-- Edit `lib/email/analyzeEmail.ts` or scoring weights
-- Invent SPF/DKIM results in UI when `headers.provided === false`
+**Must be loud:** HARD STOP card after verdict.  
+**Must be quiet:** offensive vault (collapsed).  
+**Must say:** Treat as phishing / HARD STOP — never “we prove it’s a scam.”
 
-## Commit style
-```text
-feat(fe): <what you polished>
-```
-Examples: `feat(fe): harden HARD STOP card on mobile` · `feat(fe): demo rail + verdict hierarchy`
+## FE polish priority
+1. Mobile 375px — no overflow  
+2. HARD STOP hierarchy  
+3. Demo rail (email attacks only)  
+4. Honest email-only copy in hero  
+5. Commit `feat(fe): …`
 
-## Mentor demo script (for you + BE)
-1. Bank OTP → PHISHING · HARD STOP  
-2. Fake invoice → malware Stop  
-3. Temp-mail → “identity is cheap; we still STOP”  
+## Demo script with judges
+1. Bank OTP  
+2. Fake invoice / CEO gift malware  
+3. Temp-mail  
 4. Optional vault 10s

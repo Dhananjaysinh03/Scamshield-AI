@@ -154,21 +154,24 @@ export function SimpleCheck() {
                 ScamShield
               </p>
               <p className="text-[11px] text-[var(--ink-muted)]">
-                Email phishing guard
+                Email phishing prevention
               </p>
             </div>
           </div>
         </header>
 
         <main className="mx-auto w-full max-w-xl min-w-0 px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
-          <h1 className="text-[1.65rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-dim)]">
+            One problem · one product
+          </p>
+          <h1 className="mt-2 text-[1.65rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-3xl">
             Stop email phishing before you click, pay, or share OTP
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--ink-muted)] sm:text-[0.95rem]">
-            Sender + link + attachment + intent. We don’t prove From is real —
-            we{" "}
+            ScamShield does one thing: email phishing prevention. Sender + link
+            + attachment + intent — then a{" "}
             <strong className="font-semibold text-[var(--ink)]">HARD STOP</strong>{" "}
-            OTP / pay / malware / remote access.
+            before OTP / pay / malware / remote access.
           </p>
 
           {/* Demos — one tap runs check */}

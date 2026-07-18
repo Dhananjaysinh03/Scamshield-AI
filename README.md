@@ -1,8 +1,12 @@
 # ScamShield AI
 
-**One domain:** email phishing defense for non-tech users (Neural Nexus · Cursor Hackathon Ahmedabad 2026).
+**One problem · one solution · one product:** email phishing prevention for non-tech users (Neural Nexus · Cursor Hackathon Ahmedabad 2026).
 
-Paste an email → multi-factor scores (sender · pressure · links · attachments · headers) → stop OTP / pay / open file. Honeypot + Exa vault = optional judge depth, not the core claim.
+Paste an email → multi-factor scores (sender · pressure · links · attachments · headers) → **HARD STOP** before OTP / pay / open file / remote access.
+
+Enterprise gateways (Proofpoint-class) prove email is #1. ScamShield is the **consumer brake** — not an enterprise suite, not SMS/WhatsApp, not “detect all scams.”
+
+Optional Exa / honeypot vault = judge depth only, not the core claim.
 
 ## Run
 

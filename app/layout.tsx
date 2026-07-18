@@ -19,9 +19,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield — Email phishing guard",
+  title: "ScamShield — Email phishing prevention",
   description:
-    "Paste a suspicious email. Multi-factor check of sender, pressure, links, attachments, and headers — then what not to do next.",
+    "One product: stop email phishing. Paste a suspicious email — multi-factor check, then HARD STOP before OTP, pay, malware, or remote access.",
 };
 
 const themeBootScript = `

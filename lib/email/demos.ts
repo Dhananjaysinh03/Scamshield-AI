@@ -1,5 +1,6 @@
 export type EmailDemoId =
   | "ceo_fraud"
+  | "ceo_gift"
   | "invoice_malware"
   | "bank_otp"
   | "remote_access"
@@ -29,6 +30,23 @@ Send confirmation when done.
 
 Rahul Sharma
 CEO`,
+  },
+  {
+    id: "ceo_gift",
+    label: "CEO gift malware",
+    line: "CEO name on Gmail — “gift” file is a virus",
+    raw: `From: "Rahul Sharma, CEO" <ceo.acme.corp@gmail.com>
+To: all@acme.com
+Subject: Surprise gift for all employees — claim yours
+
+Team,
+
+I arranged a gift for everyone. Open Gift_Card.pdf.exe attached and claim before EOD. Keep this confidential — do not tell HR yet.
+
+Rahul Sharma
+CEO
+Attachment: Gift_Card.pdf.exe
+Download: https://gift-claim-secure.xyz/Gift_Card.pdf.exe`,
   },
   {
     id: "invoice_malware",
