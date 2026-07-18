@@ -1,7 +1,8 @@
-/** Multi-factor email / message analysis — mentor-defensible JSON contract */
+/** Multi-factor email phishing analysis — mentor-defensible JSON contract */
 
 export type EmailVerdict = "safe" | "suspicious" | "phishing";
 export type Confidence = "Low" | "Medium" | "High";
+export type PreventionLevel = "none" | "caution" | "hard_stop";
 
 export type DangerousIntent =
   | "otp"
@@ -9,12 +10,18 @@ export type DangerousIntent =
   | "malware_open"
   | "click_verify"
   | "credential_harvest"
-  | "wire_ceo";
+  | "wire_ceo"
+  | "remote_access"
+  | "kyc_harvest";
 
 export type EmailAnalysisResult = {
   riskScore: number;
   verdict: EmailVerdict;
   confidence: Confidence;
+  /** Highest-priority prevention: hard_stop means do not act */
+  preventionLevel: PreventionLevel;
+  /** Imperative "DO NOT" lines shown first to victims */
+  hardStops: string[];
   scamType: string[];
   summary: string;
   plainSummary: string;

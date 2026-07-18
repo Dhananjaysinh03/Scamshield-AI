@@ -1,4 +1,8 @@
-export type EmailDemoId = "ceo_fraud" | "invoice_malware" | "bank_otp";
+export type EmailDemoId =
+  | "ceo_fraud"
+  | "invoice_malware"
+  | "bank_otp"
+  | "remote_access";
 
 export const EMAIL_DEMOS: {
   id: EmailDemoId;
@@ -54,5 +58,22 @@ Click here to verify: https://hdfc-secure-login.xyz/otp
 Or reply with the OTP you received on SMS.
 
 HDFC Fraud Desk`,
+  },
+  {
+    id: "remote_access",
+    label: "Fake support",
+    line: "Asks you to install AnyDesk / share screen",
+    raw: `From: "Paytm Customer Care" <care@paytm-helpdesk.xyz>
+To: you@email.com
+Subject: Refund pending — install AnyDesk to receive money
+
+Dear User,
+
+Your refund of ₹12,400 is pending. Please install AnyDesk and share your screen with our executive so we can credit it immediately.
+
+Download: https://paytm-helpdesk.xyz/anydesk
+Reply with your AnyDesk ID.
+
+Paytm Support`,
   },
 ];

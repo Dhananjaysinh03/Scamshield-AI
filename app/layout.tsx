@@ -19,9 +19,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ScamShield — Check if a message is a scam",
+  title: "ScamShield — Email phishing guard",
   description:
-    "Paste a suspicious SMS, WhatsApp, or email. Get a plain-language answer — built for everyday people.",
+    "Paste a suspicious email. Multi-factor check of sender, pressure, links, attachments, and headers — then what not to do next.",
 };
 
 const themeBootScript = `

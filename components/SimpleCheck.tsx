@@ -246,14 +246,15 @@ export function SimpleCheck() {
             Sender · content · links · files · headers
           </p>
           <h1 className="mt-2 max-w-3xl text-[1.75rem] font-extrabold leading-[1.12] tracking-tight text-[var(--ink)] sm:text-4xl lg:text-5xl">
-            Is this email trying to trap you?
+            Stop email phishing before you click, pay, or share OTP
           </h1>
           <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-[var(--ink-muted)] sm:text-base">
             Bypass one keyword and you can still fail{" "}
             <strong className="font-semibold text-[var(--ink)]">
               sender + link + attachment + intent
             </strong>
-            . We explain every factor — and stop OTP / pay / open-file.
+            . Hard brake on irreversible actions — OTP / pay / malware / remote
+            access.
           </p>
 
           {/* Demos */}
@@ -268,7 +269,7 @@ export function SimpleCheck() {
               </span>{" "}
               to analyze.
             </p>
-            <div className="chip-rail mt-3.5 sm:grid sm:grid-cols-3 sm:gap-2.5 sm:overflow-visible">
+            <div className="chip-rail mt-3.5 sm:grid sm:grid-cols-2 sm:gap-2.5 sm:overflow-visible lg:grid-cols-4">
               {EMAIL_DEMOS.map((d) => (
                 <button
                   key={d.id}
@@ -410,7 +411,12 @@ export function SimpleCheck() {
                         <div className="min-w-0 flex-1">
                           <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">
                             {verdictUi?.stamp} · {result.riskScore}/100 ·{" "}
-                            {result.confidence} confidence
+                            {result.preventionLevel === "hard_stop"
+                              ? "HARD STOP"
+                              : result.preventionLevel === "caution"
+                                ? "CAUTION"
+                                : "OK"}{" "}
+                            · {result.confidence} confidence
                           </p>
                           <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
                             {verdictUi?.label}
@@ -433,6 +439,30 @@ export function SimpleCheck() {
                         </div>
                       </div>
                     </div>
+
+                    {result.hardStops.length > 0 ? (
+                      <div
+                        className="rounded-2xl border-2 border-[var(--danger-line)] bg-[var(--danger-bg)] px-4 py-4 text-[var(--danger-ink)] sm:px-5"
+                        role="alert"
+                      >
+                        <p className="text-[11px] font-bold uppercase tracking-wider opacity-90">
+                          Safe next step — stop first
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm font-semibold leading-snug sm:text-base">
+                          {result.hardStops.map((s) => (
+                            <li key={s} className="flex gap-2.5">
+                              <span
+                                className="mt-0.5 shrink-0 rounded bg-[var(--danger-ink)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+                                aria-hidden
+                              >
+                                Stop
+                              </span>
+                              <span>{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
 
                     {result.dangerousIntents.length > 0 ? (
                       <div>

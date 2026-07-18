@@ -1,6 +1,8 @@
 # ScamShield AI
 
-Offensive phishing defense for Cursor Community Hackathon Ahmedabad 2026 (Neural Nexus).
+**One domain:** email phishing defense for non-tech users (Neural Nexus · Cursor Hackathon Ahmedabad 2026).
+
+Paste an email → multi-factor scores (sender · pressure · links · attachments · headers) → stop OTP / pay / open file. Honeypot + Exa vault = optional judge depth, not the core claim.
 
 ## Run
 

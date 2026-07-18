@@ -1,8 +1,9 @@
-# FE HANDOVER — Email multi-factor guard (CURRENT)
+# FE HANDOVER — Email-only (LOCKED DOMAIN)
 
-## Product claim (mentor-proof)
-ScamShield is a **multi-factor email analyzer**, not a random scam oracle.
-We blend **sender + content + URLs + attachments + headers (if present)** → SAFE / SUSPICIOUS / PHISHING + plain “what not to do.”
+## Domain (do not widen)
+**Email phishing guard.** Not SMS/WhatsApp/generic scam chat.
+
+Pitch: multi-factor email analysis → stop OTP / pay / open malware.
 
 ## Pull
 ```bash
@@ -10,21 +11,14 @@ git pull
 npm run dev
 ```
 
-## Core API
-`POST /api/email-analyze`
-```json
-{ "raw": "From: ...\\n\\nBody...", "officialDomain": "acme.com" }
-```
-Returns full JSON: riskScore, verdict, reasons, recommendedActions, technicalFindings, factor weights.
+## API
+`POST /api/email-analyze` — `{ "raw", "officialDomain?" }`
 
-## UI already shipped
-`components/SimpleCheck.tsx` — paste email, demos (CEO / invoice malware / bank OTP), factor bars, JSON view, optional offensive vault.
+## UI
+`SimpleCheck.tsx` — paste email, 3 email demos, factor bars, JSON, optional vault.
 
 ## Your polish
-- Tighten light UI to mock
-- Mobile 375px
-- Don’t change scoring logic in `lib/email/**`
-- Commit `feat(fe): polish email guard UX`
-
-## Pitch for mentors
-> “Bypass one keyword and you still fail sender identity + link + attachment + intent. We explain every factor. We stop OTP/pay/open-file.”
+- Light UI + mobile 375px
+- Copy stays email-only (no “SMS/WhatsApp” in hero)
+- Don’t touch `lib/email/**` scoring
+- Commit `feat(fe): polish email phishing guard UX`
