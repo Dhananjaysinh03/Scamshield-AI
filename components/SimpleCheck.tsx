@@ -8,27 +8,36 @@ import type { OcrResponse } from "@/lib/types";
 
 const VERDICT_STYLE: Record<
   EmailVerdict,
-  { label: string; className: string; icon: string }
+  { stamp: string; label: string; className: string; icon: string }
 > = {
   phishing: {
-    label: "This looks like phishing",
+    stamp: "PHISHING",
+    label: "Treat this as phishing",
     className:
       "border-[var(--danger-line)] bg-[var(--danger-bg)] text-[var(--danger-ink)]",
     icon: "!",
   },
   suspicious: {
-    label: "Looks suspicious",
+    stamp: "SUSPICIOUS",
+    label: "Be careful — something’s off",
     className:
       "border-[var(--caution-line)] bg-[var(--caution-bg)] text-[var(--caution-ink)]",
     icon: "?",
   },
   safe: {
-    label: "Safe-leaning",
+    stamp: "SAFE",
+    label: "Looks safe-leaning",
     className:
       "border-[var(--ok-line)] bg-[var(--ok-bg)] text-[var(--ok-ink)]",
     icon: "✓",
   },
 };
+
+function barColor(score: number): string {
+  if (score >= 70) return "var(--bar-hot)";
+  if (score >= 40) return "var(--bar-warm)";
+  return "var(--brand)";
+}
 
 export function SimpleCheck() {
   const [text, setText] = useState("");
@@ -49,15 +58,37 @@ export function SimpleCheck() {
   const factorBars = useMemo(() => {
     if (!result) return [];
     const t = result.technicalFindings;
+    const w = result.weights;
     return [
-      { name: "Sender identity", score: t.sender.score, weight: "25%" },
-      { name: "Content / pressure", score: t.content.score, weight: "20%" },
-      { name: "Links", score: t.urls.score, weight: "20%" },
-      { name: "Attachments", score: t.attachments.score, weight: "20%" },
       {
-        name: "Headers (SPF/DKIM/DMARC)",
+        name: "Sender",
+        detail: "Who claims to write",
+        score: t.sender.score,
+        weight: `${w.sender}%`,
+      },
+      {
+        name: "Content",
+        detail: "Pressure & intent",
+        score: t.content.score,
+        weight: `${w.content}%`,
+      },
+      {
+        name: "Links",
+        detail: "Where clicks go",
+        score: t.urls.score,
+        weight: `${w.urls}%`,
+      },
+      {
+        name: "Attachments",
+        detail: "Files / malware lures",
+        score: t.attachments.score,
+        weight: `${w.attachments}%`,
+      },
+      {
+        name: "Headers",
+        detail: t.headers.provided ? "SPF / DKIM / DMARC" : "Not in paste",
         score: t.headers.score,
-        weight: t.headers.provided ? "15%" : "0% (not provided)",
+        weight: t.headers.provided ? `${w.headers}%` : "skipped",
       },
     ];
   }, [result]);
@@ -186,54 +217,58 @@ export function SimpleCheck() {
     <div className={dark ? "theme-soc" : "theme-consumer"}>
       <div className="simple-shell min-h-screen">
         <header className="simple-header sticky top-0 z-20">
-          <div className="flex w-full items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8 xl:px-10">
+          <div className="flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8 xl:px-10">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-sm font-bold text-white shadow-sm">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-sm font-bold text-white shadow-sm sm:h-10 sm:w-10">
                 S
               </span>
-              <span className="truncate text-lg font-bold tracking-tight text-[var(--ink)] sm:text-xl">
-                ScamShield
-              </span>
+              <div className="min-w-0">
+                <p className="truncate text-base font-bold tracking-tight text-[var(--ink)] sm:text-lg">
+                  ScamShield
+                </p>
+                <p className="hidden text-[11px] text-[var(--ink-muted)] sm:block">
+                  Multi-factor email guard
+                </p>
+              </div>
             </div>
             <button
               type="button"
               onClick={toggleDark}
-              className="inline-flex min-h-11 items-center rounded-full border border-[var(--line)] bg-[var(--card)] px-4 text-sm font-medium text-[var(--ink-muted)] transition hover:border-[var(--brand)]/40 hover:text-[var(--ink)]"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-[var(--line)] bg-[var(--card)] px-3.5 text-sm font-medium text-[var(--ink-muted)] transition hover:border-[var(--brand)]/40 hover:text-[var(--ink)] sm:px-4"
             >
-              {dark ? "Light mode" : "Dark mode"}
+              {dark ? "Light" : "Dark"}
             </button>
           </div>
         </header>
 
-        <main className="w-full px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8 xl:px-10">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-dim)]">
-            Multi-factor email guard
+        <main className="w-full px-4 pb-20 pt-5 sm:px-6 sm:pt-8 lg:px-8 xl:px-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--brand-dim)]">
+            Sender · content · links · files · headers
           </p>
-          <h1 className="mt-2 max-w-3xl text-[1.85rem] font-extrabold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-5xl">
+          <h1 className="mt-2 max-w-3xl text-[1.75rem] font-extrabold leading-[1.12] tracking-tight text-[var(--ink)] sm:text-4xl lg:text-5xl">
             Is this email trying to trap you?
           </h1>
-          <p className="mt-3 max-w-2xl text-[0.95rem] leading-relaxed text-[var(--ink-muted)] sm:text-lg">
-            We don&apos;t guess from one keyword. We score{" "}
-            <strong className="text-[var(--ink)]">sender identity</strong>,{" "}
-            <strong className="text-[var(--ink)]">pressure tactics</strong>,{" "}
-            <strong className="text-[var(--ink)]">links</strong>,{" "}
-            <strong className="text-[var(--ink)]">attachments</strong>, and{" "}
-            <strong className="text-[var(--ink)]">headers</strong> (when
-            present) — then tell you what <em>not</em> to do next.
+          <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-[var(--ink-muted)] sm:text-base">
+            Bypass one keyword and you can still fail{" "}
+            <strong className="font-semibold text-[var(--ink)]">
+              sender + link + attachment + intent
+            </strong>
+            . We explain every factor — and stop OTP / pay / open-file.
           </p>
 
-          <section className="simple-card mt-7 p-4 sm:mt-8 sm:p-6">
-            <p className="text-sm font-semibold text-[var(--ink)] sm:text-base">
-              Try a known attack pattern
+          {/* Demos */}
+          <section className="simple-card mt-6 p-4 sm:mt-8 sm:p-6">
+            <p className="text-sm font-semibold text-[var(--ink)]">
+              Try a known attack
             </p>
-            <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">
-              Tap a card to load it, or tap{" "}
+            <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              Tap a card to load · tap{" "}
               <span className="font-medium text-[var(--ink)]">
                 Check this example
               </span>{" "}
-              to run multi-factor analysis in one go.
+              to analyze.
             </p>
-            <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+            <div className="chip-rail mt-3.5 sm:grid sm:grid-cols-3 sm:gap-2.5 sm:overflow-visible">
               {EMAIL_DEMOS.map((d) => (
                 <button
                   key={d.id}
@@ -241,7 +276,7 @@ export function SimpleCheck() {
                   onClick={() => previewDemo(d.id)}
                   onDoubleClick={() => checkDemo(d.id)}
                   disabled={busy}
-                  className={`min-h-14 rounded-2xl border px-3.5 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] disabled:opacity-50 ${
+                  className={`min-h-14 w-[11.5rem] shrink-0 rounded-2xl border px-3.5 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] disabled:opacity-50 sm:w-auto ${
                     demoId === d.id
                       ? "border-[var(--brand)] bg-[var(--brand-soft)] shadow-sm"
                       : "border-[var(--line)] bg-[var(--card)] hover:border-[var(--brand)]/45"
@@ -266,38 +301,48 @@ export function SimpleCheck() {
             </button>
           </section>
 
-          <div className="mt-6 grid gap-5 sm:mt-8 sm:gap-6 lg:grid-cols-2">
+          <div className="mt-5 grid gap-5 sm:mt-7 sm:gap-6 xl:grid-cols-2">
+            {/* Step 1 */}
             <section className="simple-card p-4 sm:p-6">
               <div className="flex items-start gap-3">
                 <span className="step-num" aria-hidden>
                   1
                 </span>
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-lg font-bold leading-snug text-[var(--ink)]">
                     Paste the email
                   </h2>
                   <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">
-                    Full headers + body is best. Subject/From lines alone still
-                    work — we won&apos;t invent SPF results.
+                    Headers + body is best. We never invent SPF if headers
+                    aren’t there.
                   </p>
                 </div>
               </div>
-              <label className="mt-4 block text-xs font-medium text-[var(--ink-muted)]">
-                Official company domain (optional — catches CEO@gmail)
+
+              <label className="mt-4 block">
+                <span className="text-xs font-medium text-[var(--ink-muted)]">
+                  Your real company domain{" "}
+                  <span className="font-normal">(optional)</span>
+                </span>
                 <input
                   value={officialDomain}
                   onChange={(e) => setOfficialDomain(e.target.value)}
                   placeholder="acme.com"
-                  className="mt-1 min-h-11 w-full rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30"
+                  className="mt-1.5 min-h-11 w-full rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30"
                 />
+                <span className="mt-1 block text-[11px] leading-snug text-[var(--ink-muted)]">
+                  Catches “CEO” writing from Gmail instead of @acme.com
+                </span>
               </label>
+
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                rows={12}
+                rows={11}
                 placeholder={`From: "Support" <alerts@brand-secure.xyz>\nSubject: Verify now\n\nDear customer...`}
-                className="mt-3 w-full resize-y rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 py-3.5 font-mono text-xs leading-relaxed text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30 sm:text-sm"
+                className="mt-3 w-full resize-y rounded-2xl border border-[var(--line)] bg-[var(--input)] px-3.5 py-3.5 font-mono text-[11px] leading-relaxed text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30 sm:text-sm"
               />
+
               <label className="mt-3 flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 text-sm text-[var(--ink-muted)] transition hover:border-[var(--brand)]/50 hover:text-[var(--ink)]">
                 Upload .eml / .txt / screenshot
                 <input
@@ -313,6 +358,7 @@ export function SimpleCheck() {
               {ocrNote ? (
                 <p className="mt-2 text-sm text-[var(--ink-muted)]">{ocrNote}</p>
               ) : null}
+
               <button
                 type="button"
                 onClick={checkPaste}
@@ -328,7 +374,8 @@ export function SimpleCheck() {
               ) : null}
             </section>
 
-            <div className="flex flex-col gap-5 sm:gap-6">
+            <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
+              {/* Step 2 */}
               <section ref={resultRef} className="simple-card p-4 sm:p-6">
                 <div className="flex items-start gap-3">
                   <span className="step-num" aria-hidden>
@@ -338,18 +385,18 @@ export function SimpleCheck() {
                     <h2 className="text-lg font-bold leading-snug text-[var(--ink)]">
                       Verdict
                     </h2>
-                    <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">
-                      SAFE, SUSPICIOUS, or PHISHING — with explained factors.
+                    <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                      SAFE · SUSPICIOUS · PHISHING — with factor scores.
                     </p>
                   </div>
                 </div>
 
                 {!result ? (
-                  <p className="mt-6 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 py-8 text-center text-sm text-[var(--ink-muted)]">
-                    Result appears after analysis — with multi-factor scores.
+                  <p className="mt-5 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--input)] px-4 py-8 text-center text-sm text-[var(--ink-muted)]">
+                    Paste an email and tap Check — we’ll score each factor.
                   </p>
                 ) : (
-                  <div className="mt-5 space-y-4">
+                  <div className="mt-5 space-y-5">
                     <div
                       className={`verdict-card rounded-2xl border px-4 py-4 sm:px-5 sm:py-5 ${verdictUi?.className}`}
                     >
@@ -361,10 +408,9 @@ export function SimpleCheck() {
                           {verdictUi?.icon}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold uppercase tracking-wide opacity-75">
-                            {result.verdict.toUpperCase()} · score{" "}
-                            {result.riskScore}/100 · confidence{" "}
-                            {result.confidence}
+                          <p className="text-[11px] font-bold uppercase tracking-wider opacity-80">
+                            {verdictUi?.stamp} · {result.riskScore}/100 ·{" "}
+                            {result.confidence} confidence
                           </p>
                           <p className="mt-1 text-xl font-extrabold leading-snug sm:text-2xl">
                             {verdictUi?.label}
@@ -373,20 +419,45 @@ export function SimpleCheck() {
                             {result.plainSummary}
                           </p>
                           {result.scamType.length > 0 ? (
-                            <p className="mt-2 text-xs font-medium">
-                              Types: {result.scamType.join(" · ")}
-                            </p>
+                            <div className="mt-3 flex flex-wrap gap-1.5">
+                              {result.scamType.map((t) => (
+                                <span
+                                  key={t}
+                                  className="rounded-full bg-black/5 px-2.5 py-0.5 text-[11px] font-medium dark:bg-white/10"
+                                >
+                                  {t.replace(/_/g, " ")}
+                                </span>
+                              ))}
+                            </div>
                           ) : null}
                         </div>
                       </div>
                     </div>
 
+                    {result.dangerousIntents.length > 0 ? (
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--ink)]">
+                          What they’re pushing you to do
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {result.dangerousIntents.map((i) => (
+                            <span
+                              key={i}
+                              className="rounded-full border border-[var(--danger-line)] bg-[var(--danger-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--danger-ink)]"
+                            >
+                              {i.replace(/_/g, " ")}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
                     <div>
                       <p className="text-sm font-semibold text-[var(--ink)]">
-                        Why (multi-factor)
+                        Why (explained)
                       </p>
                       <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-[var(--ink)]">
-                        {result.reasons.slice(0, 5).map((r) => (
+                        {result.reasons.slice(0, 6).map((r) => (
                           <li key={r}>{r}</li>
                         ))}
                       </ul>
@@ -396,20 +467,29 @@ export function SimpleCheck() {
                       <p className="text-sm font-semibold text-[var(--ink)]">
                         Factor scores
                       </p>
-                      <ul className="mt-2 space-y-2">
+                      <ul className="mt-3 space-y-3">
                         {factorBars.map((f) => (
                           <li key={f.name}>
-                            <div className="flex justify-between text-xs text-[var(--ink-muted)]">
-                              <span>
-                                {f.name}{" "}
-                                <span className="opacity-70">({f.weight})</span>
+                            <div className="flex items-baseline justify-between gap-2 text-xs">
+                              <span className="min-w-0">
+                                <span className="font-semibold text-[var(--ink)]">
+                                  {f.name}
+                                </span>
+                                <span className="ml-1.5 text-[var(--ink-muted)]">
+                                  {f.detail} · {f.weight}
+                                </span>
                               </span>
-                              <span>{f.score}/100</span>
+                              <span className="shrink-0 tabular-nums font-semibold text-[var(--ink)]">
+                                {f.score}
+                              </span>
                             </div>
-                            <div className="mt-1 h-2 overflow-hidden rounded-full bg-[var(--input)]">
+                            <div className="factor-track mt-1.5">
                               <div
-                                className="h-full rounded-full bg-[var(--brand)]"
-                                style={{ width: `${f.score}%` }}
+                                className="factor-fill"
+                                style={{
+                                  width: `${Math.min(100, f.score)}%`,
+                                  background: barColor(f.score),
+                                }}
                               />
                             </div>
                           </li>
@@ -420,6 +500,7 @@ export function SimpleCheck() {
                 )}
               </section>
 
+              {/* Step 3 */}
               <section className="simple-card p-4 sm:p-6">
                 <div className="flex items-start gap-3">
                   <span className="step-num" aria-hidden>
@@ -427,17 +508,21 @@ export function SimpleCheck() {
                   </span>
                   <div>
                     <h2 className="text-lg font-bold leading-snug text-[var(--ink)]">
-                      What you should do
+                      What not to do
                     </h2>
-                    <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">
-                      Clear stop/go advice after the check.
+                    <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                      Plain stop/go advice after the check.
                     </p>
                   </div>
                 </div>
+
                 {result ? (
                   <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-[var(--ink)] sm:text-base">
                     {result.recommendedActions.map((a) => (
-                      <li key={a} className="flex gap-2.5">
+                      <li
+                        key={a}
+                        className="flex gap-2.5 rounded-xl bg-[var(--input)] px-3 py-2.5"
+                      >
                         <span
                           className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--brand-soft)] text-xs font-bold text-[var(--brand-dim)]"
                           aria-hidden
@@ -450,7 +535,7 @@ export function SimpleCheck() {
                   </ul>
                 ) : (
                   <p className="mt-4 text-sm text-[var(--ink-muted)]">
-                    Clear stop/go advice after the check.
+                    Advice appears after you check an email.
                   </p>
                 )}
 
@@ -458,13 +543,13 @@ export function SimpleCheck() {
                   <button
                     type="button"
                     onClick={() => setShowJson((v) => !v)}
-                    className="mt-4 text-sm font-semibold text-[var(--brand-dim)]"
+                    className="mt-4 min-h-11 text-sm font-semibold text-[var(--brand-dim)] underline-offset-4 hover:underline"
                   >
                     {showJson ? "Hide" : "Show"} technical JSON
                   </button>
                 ) : null}
                 {showJson && result ? (
-                  <pre className="mt-3 max-h-64 overflow-auto rounded-xl bg-zinc-950 p-3 text-[10px] text-emerald-100/90">
+                  <pre className="mt-3 max-h-56 overflow-auto rounded-xl bg-zinc-950 p-3 text-[10px] leading-relaxed text-emerald-100/90 sm:max-h-72">
                     {JSON.stringify(result, null, 2)}
                   </pre>
                 ) : null}
@@ -473,11 +558,11 @@ export function SimpleCheck() {
                   type="button"
                   onClick={() => setShowTech((v) => !v)}
                   aria-expanded={showTech}
-                  className="mt-5 min-h-11 text-sm font-semibold text-[var(--brand-dim)] underline-offset-4 hover:underline"
+                  className="mt-3 block min-h-11 text-sm font-semibold text-[var(--brand-dim)] underline-offset-4 hover:underline"
                 >
                   {showTech
                     ? "Hide offensive toolkit"
-                    : "Show offensive toolkit (Exa / timeline / honeypot)"}
+                    : "Show offensive toolkit (optional)"}
                 </button>
               </section>
             </div>
@@ -489,8 +574,7 @@ export function SimpleCheck() {
             <div className="tech-vault-inner">
               <section className="tech-vault overflow-hidden rounded-2xl border border-zinc-800">
                 <div className="border-b border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-emerald-400">
-                  Optional vault · not the core claim — live intel & dismantle
-                  demo
+                  Optional vault · Exa · timeline · honeypot
                 </div>
                 <div className="bg-zinc-950 px-3 py-6 sm:px-6">
                   {showTech ? <Dashboard /> : null}

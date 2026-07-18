@@ -314,6 +314,29 @@ button:not(:disabled):active,
   background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
+.theme-consumer {
+  --bar-hot: #dc2626;
+  --bar-warm: #d97706;
+}
+
+.theme-soc {
+  --bar-hot: #f87171;
+  --bar-warm: #fbbf24;
+}
+
+.factor-track {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--input);
+}
+
+.factor-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.45s ease;
+}
+
 .tech-vault {
   color: #fafafa;
 }
