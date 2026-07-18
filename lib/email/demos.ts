@@ -83,7 +83,7 @@ SBI Security Team`,
   },
   {
     id: "fake_support",
-    label: "Fake support call",
+    label: "Fake support",
     line: "Asks you to install AnyDesk / share screen",
     tone: "attack",
     expect: "phishing",
