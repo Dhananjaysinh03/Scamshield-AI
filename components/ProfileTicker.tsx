@@ -16,7 +16,7 @@ export function ProfileTicker({ profiles }: Props) {
         {profiles.map((p, i) => (
           <li
             key={`${i}-${p.slice(0, 24)}`}
-            className="profile-tick truncate rounded px-2 py-1 hover:bg-white/5"
+            className="profile-tick break-all rounded px-2 py-1.5 hover:bg-white/5"
             style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
           >
             → {p}

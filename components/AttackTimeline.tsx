@@ -64,14 +64,14 @@ export function AttackTimeline({ result, evidence, loading, error }: Props) {
       ) : null}
 
       {/* Mobile: horizontal scroll · Desktop: vertical rail */}
-      <div className="relative">
-        <ol className="flex gap-3 overflow-x-auto pb-2 sm:flex-col sm:overflow-visible sm:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="relative min-w-0">
+        <ol className="chip-rail sm:flex-col sm:overflow-visible sm:pb-0">
           {stages.map((stage, i) => {
             const selected = active?.id === stage.id;
             return (
               <li
                 key={stage.id}
-                className="timeline-stage-in min-w-[220px] shrink-0 sm:min-w-0"
+                className="timeline-stage-in w-[min(85vw,14rem)] shrink-0 sm:w-auto sm:min-w-0"
                 style={{ animationDelay: `${i * 90}ms` }}
               >
                 <button

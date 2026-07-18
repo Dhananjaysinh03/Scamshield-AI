@@ -205,7 +205,7 @@ export function DismantlePanel({
     if (!autoStartToken || autoStartToken === lastAuto.current) return;
     if (!enabled || !targetUrl) return;
     lastAuto.current = autoStartToken;
-    const t = setTimeout(() => void startRef.current(), 400);
+    const t = setTimeout(() => void startRef.current(), 180);
     return () => clearTimeout(t);
   }, [autoStartToken, enabled, targetUrl]);
 
@@ -242,15 +242,15 @@ export function DismantlePanel({
   }
 
   return (
-    <div className="rounded-lg border border-danger/40 bg-danger/5 p-4">
+    <div className="min-w-0 rounded-lg border border-danger/40 bg-danger/5 p-4">
       <p className="font-display text-sm font-bold uppercase tracking-widest text-danger">
         System A · Dismantle Attack
       </p>
-      <p className="mt-1 text-xs text-muted">
+      <p className="mt-1 text-xs leading-relaxed text-muted">
         Reverse-poison the scammer sink with synthetic credentials.
       </p>
 
-      <label className="mt-4 block">
+      <label className="mt-4 block min-w-0">
         <span className="mb-1.5 block text-xs font-medium text-foreground">
           Target URL
         </span>
@@ -258,7 +258,7 @@ export function DismantlePanel({
           value={targetUrl}
           onChange={(e) => setTargetUrl(e.target.value)}
           disabled={running}
-          className="min-h-11 w-full rounded-lg border border-border bg-console px-3 text-sm text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-50"
+          className="min-h-11 w-full max-w-full rounded-lg border border-border bg-console px-3 text-xs text-foreground outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:opacity-50 sm:text-sm"
         >
           {urls.map((u) => (
             <option key={u} value={u}>
@@ -273,7 +273,7 @@ export function DismantlePanel({
           Injected
         </p>
         <p
-          className={`font-display text-5xl font-extrabold tabular-nums text-accent sm:text-6xl ${running ? "counter-pulse" : ""}`}
+          className={`font-display text-4xl font-extrabold tabular-nums text-accent sm:text-6xl ${running ? "counter-pulse" : ""}`}
           aria-live="polite"
         >
           {injected.toLocaleString()}

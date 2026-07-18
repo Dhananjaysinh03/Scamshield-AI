@@ -231,7 +231,7 @@ export function Dashboard() {
     setInjected(0);
     evidenceRef.current = drops;
 
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 80));
     const result = await runScan(drops);
     if (
       result &&
@@ -250,29 +250,29 @@ export function Dashboard() {
   const pushLine = (line: string) => setLines((prev) => [...prev, line]);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-6 sm:gap-8">
       <SystemsBadge />
 
-      <section data-testid="intake-region" className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+      <section data-testid="intake-region" className="flex min-w-0 flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
             Demo scenarios
           </p>
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="chip-rail">
             {DEMO_SCENARIOS.map((s) => (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => loadScenario(s.id)}
                 disabled={scanning || pitching}
-                className={`min-h-11 shrink-0 rounded-lg border px-3 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 ${
+                className={`min-h-11 w-[11.5rem] shrink-0 rounded-lg border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-[13rem] ${
                   activeScenario === s.id
                     ? "border-accent bg-accent/15 text-accent"
                     : "border-border bg-panel text-foreground hover:border-accent/40"
                 }`}
               >
-                <span className="font-semibold">{s.label}</span>
-                <span className="mt-0.5 block text-[11px] text-muted">
+                <span className="block font-semibold leading-tight">{s.label}</span>
+                <span className="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-muted">
                   {s.blurb}
                 </span>
               </button>
@@ -285,15 +285,15 @@ export function Dashboard() {
             type="button"
             onClick={() => void runPitchMode()}
             disabled={scanning || pitching}
-            className="min-h-11 rounded-lg bg-accent px-4 text-sm font-bold text-zinc-950 transition hover:bg-accent-dim hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
+            className="min-h-11 w-full rounded-lg bg-accent px-4 text-sm font-bold text-zinc-950 transition hover:bg-accent-dim hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
           >
-            {pitching ? "Pitch running…" : "▶ Pitch mode (auto)"}
+            {pitching ? "Pitch running…" : "▶ Pitch mode"}
           </button>
           <button
             type="button"
             onClick={() => loadScenario(activeScenario)}
             disabled={scanning || pitching}
-            className="min-h-11 rounded-lg border border-dashed border-accent/50 px-4 text-sm font-semibold text-accent transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
+            className="min-h-11 w-full rounded-lg border border-dashed border-accent/50 px-4 text-sm font-semibold text-accent transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
           >
             Load scenario
           </button>
@@ -301,7 +301,7 @@ export function Dashboard() {
             type="button"
             onClick={() => void buildTimeline()}
             disabled={timelineLoading || scanning || pitching}
-            className="min-h-11 rounded-lg border border-border bg-panel px-4 text-sm font-medium text-foreground transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
+            className="min-h-11 w-full rounded-lg border border-border bg-panel px-4 text-sm font-medium text-foreground transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 sm:w-auto"
           >
             {timelineLoading ? "Building…" : "Build timeline"}
           </button>

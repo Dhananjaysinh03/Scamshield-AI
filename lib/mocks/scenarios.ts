@@ -13,7 +13,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "upi_kyc",
     label: "UPI / KYC",
-    blurb: "Bank freeze → WhatsApp officer → fake payment",
+    blurb: "KYC freeze → officer → payment",
     drops: [
       {
         type: "text",
@@ -35,7 +35,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "job_offer",
     label: "Job scam",
-    blurb: "HR WhatsApp → remote task → crypto fee",
+    blurb: "HR chat → portal → fee",
     drops: [
       {
         type: "text",
@@ -57,7 +57,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "customs",
     label: "Customs",
-    blurb: "Parcel hold → authority threat → wire fee",
+    blurb: "Parcel hold → threat → fee",
     drops: [
       {
         type: "text",

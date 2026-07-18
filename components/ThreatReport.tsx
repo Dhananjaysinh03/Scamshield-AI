@@ -24,8 +24,12 @@ export function ThreatReport({
 
   function buildReport() {
     const stages =
-      timeline?.stages.map((s) => `  ${s.order}. ${s.label} (${Math.round(s.confidence * 100)}%)`).join("\n") ||
-      "  (none)";
+      timeline?.stages
+        .map(
+          (s) =>
+            `  ${s.order}. ${s.label} (${Math.round(s.confidence * 100)}%)`,
+        )
+        .join("\n") || "  (none)";
     const intel = consoleLines
       .filter((l) => l.includes("Exa Threat Intel"))
       .slice(-5)
@@ -74,8 +78,8 @@ export function ThreatReport({
 
   return (
     <div className="rounded-lg border border-border bg-panel/50 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
             Threat report
           </p>
@@ -86,9 +90,9 @@ export function ThreatReport({
         <button
           type="button"
           onClick={() => void copy()}
-          className="min-h-11 rounded-lg border border-accent/40 bg-accent/10 px-4 text-sm font-semibold text-accent transition hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="min-h-11 w-full shrink-0 rounded-lg border border-accent/40 bg-accent/10 px-4 text-sm font-semibold text-accent transition hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:w-auto"
         >
-          {copied ? "Copied" : "Copy report"}
+          {copied ? "Copied ✓" : "Copy report"}
         </button>
       </div>
     </div>
