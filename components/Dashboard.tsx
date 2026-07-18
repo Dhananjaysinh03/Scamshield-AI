@@ -1,26 +1,93 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AttackTimeline } from "@/components/AttackTimeline";
 import { DismantleTeaser } from "@/components/DismantleTeaser";
 import { EvidenceList } from "@/components/EvidenceList";
 import { IntakePanel } from "@/components/IntakePanel";
 import { ScanResults } from "@/components/ScanResults";
 import { ThreatConsole } from "@/components/ThreatConsole";
+import { USE_MOCKS } from "@/lib/mocks/config";
 import { getMockTimeline } from "@/lib/mocks/timeline";
-import type { EvidenceItem, ExaResponse, ScanResult } from "@/lib/types";
+import type {
+  EvidenceItem,
+  ExaResponse,
+  ScanResult,
+  TimelineResult,
+} from "@/lib/types";
 
 export function Dashboard() {
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [lines, setLines] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
-
-  /* FE-T1: mock timeline always available for UI polish */
-  const mockTimeline = useMemo(() => getMockTimeline(evidence), [evidence]);
+  const [timeline, setTimeline] = useState<TimelineResult | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [timelineError, setTimelineError] = useState<string | null>(null);
 
   function addEvidence(items: EvidenceItem[]) {
     setEvidence((prev) => [...prev, ...items]);
+  }
+
+  async function buildTimeline() {
+    if (!evidence.length) {
+      setLines((prev) => [
+        ...prev,
+        "[Timeline]: No evidence — add drops before stitching stages.",
+      ]);
+      setTimelineError("No evidence in session.");
+      return;
+    }
+
+    setTimelineLoading(true);
+    setTimelineError(null);
+    setLines((prev) => [
+      ...prev,
+      "[Timeline]: Building psychological attack stages…",
+    ]);
+
+    try {
+      if (USE_MOCKS) {
+        const mock = getMockTimeline(evidence);
+        setTimeline(mock);
+        setLines((prev) => [
+          ...prev,
+          `[Timeline]: Mock mode — ${mock.stages.length} stages ready.`,
+        ]);
+        return;
+      }
+
+      const res = await fetch("/api/timeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evidence }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = (await res.json()) as TimelineResult;
+      setTimeline(data);
+      setLines((prev) => [
+        ...prev,
+        `[Timeline]: ${data.stages.length} stages stitched.`,
+        data.narrative ? `[Timeline]: ${data.narrative}` : "",
+      ].filter(Boolean));
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Timeline request failed.";
+      /* Offline / BE pending: fall back to mocks so pitch still works */
+      const mock = getMockTimeline(evidence);
+      setTimeline(mock);
+      setTimelineError(null);
+      setLines((prev) => [
+        ...prev,
+        `[Timeline]: API unavailable (${msg}) — using mock stages.`,
+      ]);
+    } finally {
+      setTimelineLoading(false);
+    }
   }
 
   async function runScan() {
@@ -92,7 +159,23 @@ export function Dashboard() {
           scanning={scanning}
         />
         <EvidenceList items={evidence} />
-        <AttackTimeline result={mockTimeline} evidence={evidence} />
+
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => void buildTimeline()}
+            disabled={timelineLoading || scanning}
+            className="min-h-11 w-full rounded-lg border border-accent/50 bg-accent/10 px-4 text-sm font-semibold text-accent transition hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] disabled:opacity-40 sm:w-auto sm:self-start"
+          >
+            {timelineLoading ? "Building…" : "Build timeline"}
+          </button>
+          <AttackTimeline
+            result={timeline}
+            evidence={evidence}
+            loading={timelineLoading}
+            error={timelineError}
+          />
+        </div>
       </section>
 
       <section className="flex flex-col gap-4">
