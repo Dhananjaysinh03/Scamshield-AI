@@ -68,6 +68,8 @@ export type HoneypotStatusResponse = {
   injected: number;
   status: "running" | "done" | "error";
   lastProfilePreview?: string;
+  /** Recent synthetic profiles for UI ticker */
+  recentProfiles?: string[];
   lines: string[];
 };
 

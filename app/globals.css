@@ -88,7 +88,9 @@ body {
   .timeline-stage-in,
   .stage-glow,
   .stage-detail-in,
-  .page-enter {
+  .page-enter,
+  .profile-tick,
+  .counter-pulse {
     animation: none;
   }
 }
@@ -106,6 +108,35 @@ body {
 
 .page-enter {
   animation: page-enter 0.4s ease-out both;
+}
+
+@keyframes profile-tick {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.profile-tick {
+  animation: profile-tick 0.28s ease-out both;
+}
+
+@keyframes counter-pulse {
+  0%,
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    text-shadow: 0 0 18px rgba(52, 211, 153, 0.45);
+  }
+}
+
+.counter-pulse {
+  animation: counter-pulse 0.9s ease-in-out infinite;
 }
 
 /* Touch-friendly press feedback for interactive controls */

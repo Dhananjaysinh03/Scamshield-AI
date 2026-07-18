@@ -15,6 +15,7 @@ type Job = {
   cap: number;
   lines: string[];
   lastProfilePreview?: string;
+  recentProfiles: string[];
   createdAt: number;
   timer?: ReturnType<typeof setInterval>;
 };
@@ -121,6 +122,7 @@ export function startHoneypot(
       `[Honeypot Active]: Simulated blast armed against ${req.targetUrl.trim()}`,
       `[Honeypot Active]: Mode=simulated intensity=${intensity} - no live third-party POSTs`,
     ],
+    recentProfiles: [],
     createdAt: Date.now(),
   };
 
@@ -131,7 +133,11 @@ export function startHoneypot(
     for (let i = 0; i < batch && job.injected < job.cap; i++) {
       const profile = synthesizeProfile();
       job.injected += 1;
-      job.lastProfilePreview = `${profile.name} <${profile.email}> routing=${profile.routing}`;
+      job.lastProfilePreview = `${profile.name} <${profile.email}> · pwd=${profile.password} · routing=${profile.routing}`;
+      job.recentProfiles = [job.lastProfilePreview, ...job.recentProfiles].slice(
+        0,
+        12,
+      );
     }
 
     if (job.injected % 50 < batch || job.injected >= job.cap) {
@@ -176,6 +182,7 @@ export function getHoneypotStatus(jobId: string): HoneypotStatusResponse | null 
     injected: job.injected,
     status: job.status,
     lastProfilePreview: job.lastProfilePreview,
+    recentProfiles: [...job.recentProfiles],
     lines: [...job.lines],
   };
 }

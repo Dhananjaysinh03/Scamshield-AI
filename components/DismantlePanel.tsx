@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HoneypotTerminal } from "@/components/HoneypotTerminal";
+import { ProfileTicker } from "@/components/ProfileTicker";
 import { USE_HONEYPOT_MOCKS } from "@/lib/mocks/config";
 import {
   mockPollHoneypot,
@@ -18,11 +19,19 @@ import type {
 type Props = {
   scan: ScanResult | null;
   onConsoleLine?: (line: string) => void;
+  /** Increment to auto-start when unlocked (pitch mode) */
+  autoStartToken?: number;
+  onInjectedChange?: (n: number) => void;
 };
 
 const POLL_MS = 400;
 
-export function DismantlePanel({ scan, onConsoleLine }: Props) {
+export function DismantlePanel({
+  scan,
+  onConsoleLine,
+  autoStartToken = 0,
+  onInjectedChange,
+}: Props) {
   const risk = scan?.riskLevel ?? null;
   const urls = scan?.urls ?? [];
   const enabled =
@@ -35,10 +44,13 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
   const [injected, setInjected] = useState(0);
   const [jobId, setJobId] = useState<string | null>(null);
   const [hpLines, setHpLines] = useState<string[]>([]);
+  const [profiles, setProfiles] = useState<string[]>([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seenLines = useRef(0);
   const useMockRef = useRef(USE_HONEYPOT_MOCKS);
   const heroSent = useRef(false);
+  const lastAuto = useRef(0);
+  const startRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     if (urls.length && !targetUrl) {
@@ -56,6 +68,11 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
 
   useEffect(() => () => stopPolling(), [stopPolling]);
 
+  function setInjectedBoth(n: number) {
+    setInjected(n);
+    onInjectedChange?.(n);
+  }
+
   function appendLines(next: string[], alsoConsole = false) {
     if (!next.length) return;
     setHpLines((prev) => [...prev, ...next]);
@@ -71,16 +88,28 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
       let status: HoneypotStatusResponse;
       if (useMockRef.current) {
         status = mockPollHoneypot(id);
-        setInjected(status.injected);
+        setInjectedBoth(status.injected);
         appendLines(status.lines);
+        if (status.lastProfilePreview) {
+          setProfiles((prev) =>
+            [status.lastProfilePreview!, ...prev].slice(0, 12),
+          );
+        }
       } else {
         const res = await fetch(`/api/honeypot/${id}`);
         if (!res.ok) throw new Error(`poll ${res.status}`);
         status = (await res.json()) as HoneypotStatusResponse;
-        setInjected(status.injected);
+        setInjectedBoth(status.injected);
         const fresh = status.lines.slice(seenLines.current);
         seenLines.current = status.lines.length;
         appendLines(fresh);
+        if (status.recentProfiles?.length) {
+          setProfiles(status.recentProfiles);
+        } else if (status.lastProfilePreview) {
+          setProfiles((prev) =>
+            [status.lastProfilePreview!, ...prev].slice(0, 12),
+          );
+        }
       }
 
       if (status.status === "done" || status.status === "error") {
@@ -90,7 +119,7 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
           !heroSent.current
         ) {
           heroSent.current = true;
-          const hero = `[Honeypot Active]: Injected ${status.injected} fake credentials. Scammer database corrupted successfully.`;
+          const hero = `[Honeypot Active]: Injected ${status.injected.toLocaleString()} fake credentials. Scammer database corrupted successfully.`;
           const already = status.lines.some((l) =>
             l.includes("corrupted successfully"),
           );
@@ -109,10 +138,11 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
   }
 
   async function start() {
-    if (!enabled || !targetUrl || !risk) return;
+    if (!enabled || !targetUrl || !risk || running) return;
 
     setHpLines([]);
-    setInjected(0);
+    setProfiles([]);
+    setInjectedBoth(0);
     seenLines.current = 0;
     heroSent.current = false;
     useMockRef.current = USE_HONEYPOT_MOCKS;
@@ -136,7 +166,7 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
           body: JSON.stringify({
             targetUrl,
             riskLevel: risk,
-            intensity: "demo",
+            intensity: "burst",
           }),
         });
         if (!res.ok) {
@@ -168,6 +198,16 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
       setRunning(false);
     }
   }
+
+  startRef.current = start;
+
+  useEffect(() => {
+    if (!autoStartToken || autoStartToken === lastAuto.current) return;
+    if (!enabled || !targetUrl) return;
+    lastAuto.current = autoStartToken;
+    const t = setTimeout(() => void startRef.current(), 400);
+    return () => clearTimeout(t);
+  }, [autoStartToken, enabled, targetUrl]);
 
   function stop() {
     if (jobId && useMockRef.current) {
@@ -204,7 +244,7 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
   return (
     <div className="rounded-lg border border-danger/40 bg-danger/5 p-4">
       <p className="font-display text-sm font-bold uppercase tracking-widest text-danger">
-        Dismantle Attack
+        System A · Dismantle Attack
       </p>
       <p className="mt-1 text-xs text-muted">
         Reverse-poison the scammer sink with synthetic credentials.
@@ -233,7 +273,7 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
           Injected
         </p>
         <p
-          className="font-display text-5xl font-extrabold tabular-nums text-accent sm:text-6xl"
+          className={`font-display text-5xl font-extrabold tabular-nums text-accent sm:text-6xl ${running ? "counter-pulse" : ""}`}
           aria-live="polite"
         >
           {injected.toLocaleString()}
@@ -247,7 +287,7 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
           disabled={running || !targetUrl}
           className="min-h-11 flex-1 rounded-lg bg-danger px-4 text-sm font-semibold text-zinc-950 transition hover:bg-danger/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] disabled:opacity-40"
         >
-          {running ? "Injecting…" : "Start"}
+          {running ? "Corrupting database…" : "Dismantle Attack"}
         </button>
         <button
           type="button"
@@ -258,6 +298,8 @@ export function DismantlePanel({ scan, onConsoleLine }: Props) {
           Stop
         </button>
       </div>
+
+      <ProfileTicker profiles={profiles} />
 
       <div className="mt-4">
         <HoneypotTerminal lines={hpLines} />
