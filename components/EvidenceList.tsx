@@ -5,7 +5,15 @@ import type { EvidenceItem } from "@/lib/types";
 export function EvidenceList({ items }: { items: EvidenceItem[] }) {
   if (!items.length) {
     return (
-      <p className="text-sm text-muted">No evidence drops yet. Add one above.</p>
+      <div className="rounded-lg border border-dashed border-border bg-panel/20 px-4 py-4">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          Evidence queue
+        </p>
+        <p className="mt-2 text-sm text-foreground/90">
+          Hit <span className="text-accent font-semibold">▶ Pitch mode</span> for
+          a full auto demo — or Load scenario / paste a drop.
+        </p>
+      </div>
     );
   }
 

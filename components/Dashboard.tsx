@@ -297,6 +297,9 @@ export function Dashboard() {
           >
             Load scenario
           </button>
+          <p className="w-full text-xs text-muted sm:w-auto sm:self-center">
+            Judges: one click runs Exa → timeline → honeypot.
+          </p>
           <button
             type="button"
             onClick={() => void buildTimeline()}

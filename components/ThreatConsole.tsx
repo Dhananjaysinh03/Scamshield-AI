@@ -21,7 +21,11 @@ export function ThreatConsole({ lines }: { lines: string[] }) {
       </div>
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3 font-mono text-xs leading-relaxed text-emerald-100/90">
         {lines.length === 0 ? (
-          <p className="text-muted">Awaiting scan…</p>
+          <div className="space-y-1.5 text-muted">
+            <p>[Boot]: ScamShield SOC online.</p>
+            <p>[Boot]: Systems A/B/C armed — press Pitch mode to fire.</p>
+            <p className="text-accent/80">Awaiting scan…</p>
+          </div>
         ) : (
           lines.map((line, i) => (
             <p key={`${i}-${line.slice(0, 24)}`} className="break-words">

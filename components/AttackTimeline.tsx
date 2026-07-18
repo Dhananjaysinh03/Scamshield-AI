@@ -38,9 +38,12 @@ export function AttackTimeline({ result, evidence, loading, error }: Props) {
 
   if (!result || stages.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-panel/30 px-4 py-5">
-        <p className="text-sm text-muted">
-          Attack timeline empty — add evidence and build a timeline.
+      <div className="rounded-lg border border-dashed border-border bg-panel/20 px-4 py-5">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+          System B · Attack timeline
+        </p>
+        <p className="mt-2 text-sm text-muted">
+          Stages appear after scan — Urgency → Authority → Extortion.
         </p>
       </div>
     );
