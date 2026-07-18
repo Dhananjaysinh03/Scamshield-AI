@@ -354,7 +354,6 @@ export function SimpleCheck() {
                             {s
                               .replace(/^DO NOT\s+/i, "")
                               .replace(/^SAFE NEXT STEP:\s*/i, "")}
-                          }
                           </span>
                         </li>
                       ))}
